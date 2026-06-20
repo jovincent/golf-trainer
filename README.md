@@ -231,6 +231,71 @@ profile keeps its own isolated session history.
 
 ---
 
+## Add your own courses
+
+Courses are plain TypeScript data files in [`src/lib/courses/`](src/lib/courses/) — no
+in-app downloader, you add them yourself. Each file exports a `Hole[]` array; a course is a
+list of holes described in a **local metric frame** where the tee sits at the origin,
+`y` points toward the pin and `x` is lateral (`+x` = right). Distances are in metres.
+
+```ts
+// src/lib/courses/myCourse.ts
+import type { Hole } from "../course";
+
+export const MY_COURSE: Hole[] = [
+  {
+    number: 1,
+    par: 4,
+    name: "",              // optional hole name
+    fairwayHalf: 16,       // half-width of the fairway corridor (m)
+    greenRadius: 8,        // green radius (m)
+    obHalf: 41,            // beyond this lateral distance = out of bounds (m)
+    centerline: [          // tee … pin, ≥2 points; add bends for doglegs
+      { x: 0, y: 0 },
+      { x: 0, y: 340 },
+    ],
+    hazards: [             // bunkers / water, positioned in the same frame
+      { type: "sand",  cx: 8, cy: 250, r: 5 },
+      { type: "water", cx: -12, cy: 300, r: 14 },
+    ],
+    wind: { wx: 0, wy: 0 },
+  },
+  // … one object per hole
+];
+```
+
+**Where to find the geometry.** The bundled courses were traced from **OpenStreetMap**
+(© OpenStreetMap contributors, ODbL):
+
+1. Find the course on [openstreetmap.org](https://www.openstreetmap.org) and note the
+   `golf=hole` ways, or query the **Overpass API**
+   ([overpass-turbo.eu](https://overpass-turbo.eu)) for `golf=hole`, `golf=green`,
+   `golf=bunker` and `natural=water` around the course.
+2. Take each hole's centreline (tee → green) and read off the lat/lon points.
+3. Project them to the local metre frame: pick the tee as origin, rotate so the green is
+   straight ahead (`+y`), convert degrees to metres (≈ `111 320 m` per degree of latitude,
+   `× cos(lat)` for longitude). Attach bunkers/water as `{cx, cy, r}` in the same frame.
+
+You don't have to be exact — eyeballed coordinates play fine. The `Hole` type lives in
+[`src/lib/course.ts`](src/lib/course.ts) if you want every field.
+
+**Register it.** Import the file in [`src/pages/Course.tsx`](src/pages/Course.tsx) and add
+one entry to `COURSE_LIST`:
+
+```ts
+import { MY_COURSE } from "../lib/courses/myCourse";
+
+const COURSE_LIST: CourseDef[] = [
+  { id: "my-course", label: "My Course", loc: "Town, Country", group: "Others", holes: MY_COURSE },
+  // …
+];
+```
+
+It then shows up in the course carousel and search. Optionally add a hero photo in
+`src/lib/courses/coursePhotos.ts` (it falls back to a generic golf photo otherwise).
+
+---
+
 ## How the Garmin R10 connection works (Bluetooth + protobuf)
 
 The R10 speaks a **framed protobuf** protocol over Bluetooth Low Energy. Garmin doesn't
