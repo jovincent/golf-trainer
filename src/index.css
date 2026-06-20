@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Michelin design system ───────────────────────────────────────────
+   Modern blue / white identity. Navy ink, one royal-blue accent, a yellow
+   keyline (liseré) used as edges only, on a soft blue-grey field.
+   Values are space-separated R G B so Tailwind /alpha modifiers work.       */
+
+:root {
+  color-scheme: light;
+  --c-ink:     22  41  77;   /* #16294D  navy — text + CTA            */
+  --c-fw:      46  93 164;   /* #2E5DA4  royal — primary accent       */
+  --c-fwl:     58 110 180;   /* #3A6EB4  royal light                  */
+  --c-fwg:    122 158 210;   /* #7A9ED2  royal glow                   */
+  --c-teal:    47 143 166;   /* #2F8FA6  data key                     */
+  --c-gold:   198 138  20;   /* #C68A14  finance key                  */
+  --c-terra:  194  96  58;   /* #C2603A  support key                  */
+  --c-lisere: 244 197  52;   /* #F4C534  yellow keyline (edges only)  */
+  --c-canvas: 242 246 252;   /* #F2F6FC  page tint                    */
+  --c-surface:255 255 255;   /* #FFFFFF  card / paper                 */
+  --c-panel:  233 239 247;   /* #E9EFF7  field / subtle fills         */
+  --c-field-1:214 225 239;   /* #D6E1EF  field gradient bottom        */
+
+  --r-card: 14px;
+  --shadow-soft: 0 5px 20px rgb(22 41 77 / .10);
+  --shadow-min:  0 1px 8px  rgb(22 41 77 / .08);
+  --shadow-cta:  0 6px 22px rgb(22 41 77 / .22);
+  --border-card: rgb(22 41 77 / .12);
+}
+
+/* ── Base ─────────────────────────────────────────────────────────── */
+body {
+  @apply text-ink font-sans antialiased;
+  margin: 0;
+  background: linear-gradient(180deg, rgb(var(--c-canvas)) 0%, rgb(var(--c-panel)) 100%);
+  background-attachment: fixed;
+}
+
+.metric { @apply font-mono tabular-nums; }
+
+/* Visible keyboard focus everywhere, without polluting mouse interactions */
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible {
+  outline: 2px solid rgb(var(--c-fw));
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.serif { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; }
+
+.card {
+  @apply bg-surface;
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid var(--border-card);
+}
+
+/* Yellow liseré — the signature keyline. Use as a thin top edge. */
+.lisere-top { position: relative; }
+.lisere-top::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: rgb(var(--c-lisere));
+  border-top-left-radius: inherit; border-top-right-radius: inherit;
+  z-index: 1;
+}
+
+/* ── Print: isolate the share card so "Save as PDF" yields a clean poster ── */
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden; }
+  [data-share-card], [data-share-card] * { visibility: visible; }
+  [data-share-card] {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    box-shadow: none !important; margin: 0 !important;
+  }
+  .share-actions, .share-modal-overlay > div > div:first-child { display: none !important; }
+}

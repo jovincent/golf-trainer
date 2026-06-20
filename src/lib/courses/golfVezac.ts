@@ -1,0 +1,21 @@
+// Golf Club de Vezac — Vezac (15), Auvergne, France.
+// Real per-hole geometry from OpenStreetMap via the Overpass API
+// (© OpenStreetMap contributors, ODbL), projected to a local tee-origin metric
+// frame (y = toward pin, x = lateral, +x = right). Pars inferred from hole length
+// where not tagged in OSM. Bunkers and water assigned to the nearest hole.
+//
+// Geometry: https://www.openstreetmap.org/relation/18620332
+
+import type { Hole } from "../course";
+
+export const GOLF_VEZAC_META = {
+  id: "golf-vezac",
+  name: "Golf Club de Vezac",
+  location: "Vezac (15)",
+  region: "Auvergne, France",
+  source: "OpenStreetMap (ODbL)",
+  par: 71,
+  holes: 18,
+};
+
+export const GOLF_VEZAC: Hole[] = [{"number":1,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-32.7,"y":154.2},{"x":0.0,"y":256.2}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":2,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":-52.1,"y":204.5},{"x":0.0,"y":294.2}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":3,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-30.7,"y":131.0},{"x":-0.0,"y":257.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":4,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":11.0,"obHalf":41.0,"centerline":[{"x":0.0,"y":-0.0},{"x":0.0,"y":109.7}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":5,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":33.5,"y":176.0},{"x":-0.0,"y":242.2}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":6,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":11.0,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":152.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":7,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-22.8,"y":134.6},{"x":0.0,"y":262.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":8,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-5.0,"y":198.8},{"x":0.0,"y":299.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":9,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":31.0,"y":182.8},{"x":32.5,"y":375.3},{"x":0.0,"y":450.0}],"hazards":[{"type":"water","cx":53.0,"cy":-4.0,"r":28.0}],"wind":{"wx":0,"wy":0}},{"number":10,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":11.0,"obHalf":41.0,"centerline":[{"x":0.0,"y":-0.0},{"x":0.0,"y":184.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":11,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-25.2,"y":159.7},{"x":0.0,"y":317.3}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":12,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":11.0,"obHalf":41.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-0.0,"y":147.7}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":13,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":80.7,"y":201.4},{"x":19.4,"y":350.5},{"x":0.0,"y":436.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":14,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":51.5,"y":136.1},{"x":0.0,"y":216.7}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":15,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-12.5,"y":133.7},{"x":10.0,"y":314.9},{"x":0.0,"y":413.8}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":16,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-9.0,"y":182.7},{"x":0.0,"y":263.4}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":17,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":11.0,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":116.4}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":18,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":11.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":47.9,"y":178.0},{"x":-1.3,"y":374.2},{"x":0.0,"y":465.8}],"hazards":[],"wind":{"wx":0,"wy":0}}];

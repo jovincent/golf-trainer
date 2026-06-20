@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="14" fill="#16294D"/>
+  <rect width="64" height="5" rx="2.5" fill="#F4C534"/>
+  <!-- golf flag -->
+  <line x1="23" y1="46" x2="23" y2="18" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M23 18 L41 23 L23 28 Z" fill="#2E5DA4"/>
+  <circle cx="23" cy="47" r="3" fill="#FFFFFF"/>
+</svg>

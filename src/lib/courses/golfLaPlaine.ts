@@ -1,0 +1,21 @@
+// Golf de la Plaine — Combronde (63), Auvergne, France.
+// Real per-hole geometry from OpenStreetMap via the Overpass API
+// (© OpenStreetMap contributors, ODbL), projected to a local tee-origin metric
+// frame (y = toward pin, x = lateral, +x = right). Pars inferred from hole length
+// where not tagged in OSM. Bunkers and water assigned to the nearest hole.
+//
+// Geometry: https://www.openstreetmap.org/way/1392250973
+
+import type { Hole } from "../course";
+
+export const GOLF_LA_PLAINE_META = {
+  id: "golf-la-plaine",
+  name: "Golf de la Plaine",
+  location: "Combronde (63)",
+  region: "Auvergne, France",
+  source: "OpenStreetMap (ODbL)",
+  par: 71,
+  holes: 18,
+};
+
+export const GOLF_LA_PLAINE: Hole[] = [{"number":1,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":10.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":57.1,"y":172.1},{"x":0.0,"y":283.3}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":2,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":10.2,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":107.6}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":3,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":10.4,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":39.3,"y":187.7},{"x":0.0,"y":244.5}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":4,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":8.9,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-0.0,"y":145.8},{"x":-4.7,"y":280.7},{"x":0.0,"y":389.0}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":5,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":10.1,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":159.9}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":6,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":8.6,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":6.4,"y":143.6},{"x":0.0,"y":194.3}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":7,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":9.2,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":155.7}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":8,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":8.0,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":18.2,"y":235.1},{"x":12.9,"y":328.2},{"x":0.0,"y":395.1}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":9,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":9.8,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-86.6,"y":116.7},{"x":-120.1,"y":220.6},{"x":0.0,"y":276.1}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":10,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":8.0,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":6.1,"y":126.8},{"x":0.0,"y":190.0}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":11,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":8.3,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":-0.0,"y":138.0}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":12,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":9.6,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-35.4,"y":163.9},{"x":0.0,"y":281.5}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":13,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":9.5,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":-55.5,"y":154.2},{"x":-0.0,"y":278.0}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":14,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":8.1,"obHalf":43.0,"centerline":[{"x":0.0,"y":0.0},{"x":53.0,"y":135.9},{"x":0.0,"y":259.1}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":15,"par":3,"name":"","fairwayHalf":16.0,"greenRadius":8.5,"obHalf":41.0,"centerline":[{"x":0.0,"y":0.0},{"x":0.0,"y":57.0}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":16,"par":5,"name":"","fairwayHalf":18.0,"greenRadius":8.9,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":5.7,"y":180.1},{"x":8.2,"y":318.3},{"x":0.0,"y":423.6}],"hazards":[],"wind":{"wx":0,"wy":0}},{"number":17,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":10.2,"obHalf":43.0,"centerline":[{"x":-0.0,"y":0.0},{"x":-12.7,"y":171.4},{"x":0.0,"y":289.5}],"hazards":[{"type":"water","cx":20.9,"cy":36.8,"r":15.3}],"wind":{"wx":0,"wy":0}},{"number":18,"par":4,"name":"","fairwayHalf":18.0,"greenRadius":11.5,"obHalf":43.0,"centerline":[{"x":0.0,"y":-0.0},{"x":-4.3,"y":180.8},{"x":0.0,"y":266.8}],"hazards":[],"wind":{"wx":0,"wy":0}}];
