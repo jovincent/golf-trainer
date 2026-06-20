@@ -1,40 +1,87 @@
 import type { Shot } from "../types";
 
-// Dependency-free pseudo-3D "down-the-line" shot view: a fairway receding to the
-// horizon, with the ball's flight arc rising into the sky, curving with sidespin,
-// and a shadow tracking it on the grass. Reconstructed from the shot's carry /
-// apex / lateral metrics and projected with a simple perspective camera.
+/**
+ * 3D shot view — dependency-free SVG with a real pinhole camera.
+ *
+ * The camera sits behind, above and to the LEFT of the tee, looking down the
+ * fairway (a 3/4 view). That angle is what makes a flat SVG read as 3D: a shot
+ * flies up-and-to-the-right as a clear parabola (apex, descent and roll all
+ * visible), the fairway recedes to a vanishing point on the horizon, and lateral
+ * dispersion shows as cross-range offset against the 5 % / 8 % corridors.
+ *
+ * The scale is fixed for the whole session — the camera, focal length and corridor
+ * widths are derived from the session's longest and highest shot — so the view
+ * never jumps between shots: a short wedge simply lands nearer/lower than a drive.
+ */
 
-const W = 480, H = 380;
-const HOR = 150;          // horizon screen-y
-const GNEAR = 372;        // near ground screen-y
-const CX = W / 2;
-const PXM_LAT = 5.0;      // px per metre, lateral (near plane)
-const PXM_H = 13.0;       // px per metre, height (near plane, slightly exaggerated)
-const HP = 0.32;          // far-compression: smaller = flatter horizon pull
-const CORRIDOR = 22;      // fairway half-width drawn (m)
-const YAW = 58;           // camera yaw (px the centreline drifts by at the horizon)
-                          // — viewing slightly off-line so the arc reads as a 3D
-                          //   curve instead of overlapping itself on a straight shot.
+const W = 480, H = 380;   // SVG viewBox
+const CX = W / 2;         // screen centre x
+const CY = 138;           // horizon screen-y (a ground point at infinity projects here)
+const Z_IN = 0.05;        // ≤5 %  → green corridor   (lateral half-width as % of distance)
+const Z_OUT = 0.08;       // 5–8 % → amber band
+const HORIZON_MULT = 1.6; // the fairway/grid is drawn out to this multiple of the longest shot
 
-type P = { sx: number; sy: number; gy: number; shrink: number };
+type V = { x: number; y: number; z: number };
+type P = { sx: number; sy: number };
+type Project = (x: number, y: number, z: number) => P;
 
-function project(x: number, y: number, z: number, Ymax: number): P {
-  const d = Math.min(1, Math.max(0, y / Ymax));
-  const sd = d / (d + (1 - d) * HP);             // perspective depth 0..1
-  const gy = GNEAR + (HOR - GNEAR) * sd;          // ground line at this depth
-  const shrink = 1 - 0.9 * sd;                    // near wide → far narrow
-  const baseX = CX + YAW * sd;                    // centreline drifts with depth (yaw)
-  return { sx: baseX + x * PXM_LAT * shrink, sy: gy - z * PXM_H * shrink, gy, shrink };
+const sub = (a: V, b: V): V => ({ x: a.x - b.x, y: a.y - b.y, z: a.z - b.z });
+const dot = (a: V, b: V) => a.x * b.x + a.y * b.y + a.z * b.z;
+const cross = (a: V, b: V): V => ({ x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x });
+const norm = (a: V): V => { const l = Math.hypot(a.x, a.y, a.z) || 1; return { x: a.x / l, y: a.y / l, z: a.z / l }; };
+
+/**
+ * Build a pinhole camera for a session whose longest shot is `Yland` metres.
+ * World coords: x = lateral (+right), y = downrange, z = height (all metres).
+ * The focal length is solved so the 8 % corridor at the landing fills ±FILL_FRAC·W.
+ */
+function makeCamera(Yland: number): Project {
+  // Behind the tee, well above, slightly to the left — looking down the fairway.
+  // The height keeps the trajectory lifted clear of its ground track; the small
+  // lateral offset gives a straight shot horizontal extent (so it reads as a curve).
+  const eye: V = { x: -0.07 * Yland, y: -0.40 * Yland, z: 0.22 * Yland };
+  const target: V = { x: 0.07 * Yland, y: 0.52 * Yland, z: 0.05 * Yland };
+  const f = norm(sub(target, eye));               // forward (view) axis
+  const r = norm(cross(f, { x: 0, y: 0, z: 1 }));  // screen-right axis
+  const u = cross(r, f);                           // screen-up axis
+
+  const toCam = (x: number, y: number, z: number) => {
+    const rel = sub({ x, y, z }, eye);
+    return { cx: dot(rel, r), cy: dot(rel, u), cz: dot(rel, f) };
+  };
+  // Focal ∝ scene depth so the framing is the same for any session distance.
+  const focal = 2.5 * Yland;
+
+  return (x, y, z) => {
+    const c = toCam(x, y, z);
+    const d = Math.max(c.cz, 0.01);  // depth (avoid divide-by-zero behind the camera)
+    return { sx: CX + (focal * c.cx) / d, sy: CY - (focal * c.cy) / d };
+  };
 }
 
-// Build the flight arc (carry parabola-ish peaking ~56% downrange) + ground roll.
-function flightPoints(shot: Shot, Ymax: number) {
-  const carry = Math.max(1, shot.carry);
-  const total = Math.max(carry, shot.total);
-  const apex = Math.max(2, shot.apex || carry * 0.14);
-  const cDev = shot.carryDeviation ?? shot.offlineM ?? 0;
-  const off = shot.offlineM ?? cDev;
+/** Sample a ground edge whose lateral offset is `latOf(y)`, tee → `yEnd`. */
+function edgePts(project: Project, yEnd: number, latOf: (y: number) => number, N = 20): P[] {
+  const pts: P[] = [];
+  for (let i = 0; i <= N; i++) { const y = (i / N) * yEnd; pts.push(project(latOf(y), y, 0)); }
+  return pts;
+}
+const ptsStr = (pts: P[]) => pts.map((p) => `${p.sx.toFixed(1)},${p.sy.toFixed(1)}`).join(" ");
+/** Filled ground band between two edges (outer reversed to close the polygon). */
+const band = (inner: P[], outer: P[]) => ptsStr([...inner, ...[...outer].reverse()]);
+
+/**
+ * Reconstruct the flight path. The carry arc peaks ~56 % downrange
+ * (z = apex·sin(π·t^1.18)) and curves laterally with x = cDev·t^1.7; a straight
+ * ground roll then runs from the carry point to the total point. Inputs are
+ * coerced to finite numbers so one bad shot can't break its own arc.
+ */
+function flightPoints(shot: Shot, project: Project) {
+  const num = (v: number | undefined, d: number) => (Number.isFinite(v) ? (v as number) : d);
+  const carry = Math.max(1, num(shot.carry, 1));
+  const total = Math.max(carry, num(shot.total, carry));
+  const apex = Math.max(2, num(shot.apex, carry * 0.14));
+  const cDev = num(shot.carryDeviation ?? shot.offlineM, 0);
+  const off = num(shot.offlineM, cDev);
   const N = 48;
   const air: P[] = [];
   const shadow: P[] = [];
@@ -43,28 +90,52 @@ function flightPoints(shot: Shot, Ymax: number) {
     const y = carry * t;
     const z = apex * Math.sin(Math.PI * Math.pow(t, 1.18));
     const x = cDev * Math.pow(t, 1.7);
-    air.push(project(x, y, z, Ymax));
-    shadow.push(project(x, y, 0, Ymax));
+    air.push(project(x, y, z));
+    shadow.push(project(x, y, 0));
   }
-  // ground roll from carry → total
-  const rollA = project(cDev, carry, 0, Ymax);
-  const rollB = project(off, total, 0, Ymax);
-  return { air, shadow, rollA, rollB, apexIdx: Math.round(0.56 * N) };
+  return {
+    air, shadow,
+    rollA: project(cDev, carry, 0),
+    rollB: project(off, total, 0),
+    apexIdx: Math.round(0.56 * N),
+  };
 }
 
 const toPath = (pts: P[]) => pts.map((p, i) => `${i ? "L" : "M"}${p.sx.toFixed(1)} ${p.sy.toFixed(1)}`).join(" ");
-const pathLen = (pts: P[]) => pts.reduce((s, p, i) => i ? s + Math.hypot(p.sx - pts[i - 1].sx, p.sy - pts[i - 1].sy) : 0, 0);
+const pathLen = (pts: P[]) =>
+  pts.reduce((s, p, i) => (i ? s + Math.hypot(p.sx - pts[i - 1].sx, p.sy - pts[i - 1].sy) : 0), 0);
 
-export function ShotTrajectory3D({ shot, ghosts = [] }: { shot?: Shot; ghosts?: Shot[] }) {
-  const Ymax = shot ? Math.max(60, shot.total * 1.06) : 200;
+/**
+ * @param shots  The session's shots, newest first. `shots[0]` is drawn as the
+ *               bright animated arc; the next few are faint "ghost" arcs; the
+ *               whole set fixes the camera scale (longest + highest shot).
+ */
+export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
+  const shot = shots[0];
+  const ghosts = shots.slice(1, 6);
 
-  // Ground grid: fairway edges + distance cross-lines (recede to horizon).
-  const edgeL = [project(-CORRIDOR, 0, 0, Ymax), project(-CORRIDOR, Ymax, 0, Ymax)];
-  const edgeR = [project(CORRIDOR, 0, 0, Ymax), project(CORRIDOR, Ymax, 0, Ymax)];
+  // Fixed session scale (NaN-safe: a bad value can't poison Math.max → NaN everywhere).
+  const finite = (xs: number[]) => xs.filter(Number.isFinite);
+  const totals = finite(shots.map((s) => s.total));
+  const maxTotal = totals.length ? Math.max(...totals) : 0;
+  const Yland = Math.max(60, maxTotal * 1.06);
+  const Yfar = Yland * HORIZON_MULT;
+  const RAIL = Math.max(12, Z_OUT * Yland * 1.5); // fairway half-width (just beyond the 8 % band)
+  const project = makeCamera(Yland);
+
+  // Fairway (to the horizon) + dispersion corridors (to the landing).
+  const fairway = band(edgePts(project, Yfar, () => -RAIL), edgePts(project, Yfar, () => RAIL));
+  const in5L = edgePts(project, Yland, (y) => -Z_IN * y);
+  const in5R = edgePts(project, Yland, (y) => Z_IN * y);
+  const out8L = edgePts(project, Yland, (y) => -Z_OUT * y);
+  const out8R = edgePts(project, Yland, (y) => Z_OUT * y);
+
   const marks: number[] = [];
-  for (let m = 50; m < Ymax; m += 50) marks.push(m);
+  for (let m = 50; m < Yfar; m += 50) marks.push(m);
+  const lbl5 = project(Z_IN * Yland * 0.92, Yland * 0.92, 0);
+  const lbl8 = project(Z_OUT * Yland * 0.92, Yland * 0.92, 0);
 
-  const fp = shot ? flightPoints(shot, Ymax) : null;
+  const fp = shot ? flightPoints(shot, project) : null;
   const len = fp ? pathLen(fp.air) : 0;
 
   return (
@@ -75,7 +146,7 @@ export function ShotTrajectory3D({ shot, ghosts = [] }: { shot?: Shot; ghosts?: 
           <stop offset="1" stopColor="#dcecfb" />
         </linearGradient>
         <linearGradient id="grass3d" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#5f9e57" />
+          <stop offset="0" stopColor="#4f9050" />
           <stop offset="1" stopColor="#3f7d3c" />
         </linearGradient>
         <linearGradient id="trail3d" x1="0" y1="0" x2="0" y2="1">
@@ -84,55 +155,63 @@ export function ShotTrajectory3D({ shot, ghosts = [] }: { shot?: Shot; ghosts?: 
         </linearGradient>
       </defs>
 
-      {/* sky + distant hills + grass */}
-      <rect x={0} y={0} width={W} height={HOR + 1} fill="url(#sky3d)" />
-      <path d={`M0 ${HOR} Q90 ${HOR - 34} 190 ${HOR - 6} T380 ${HOR - 20} T${W} ${HOR - 4} V${HOR} Z`}
-        fill="#6f8f74" opacity={0.55} />
-      <rect x={0} y={HOR} width={W} height={H - HOR} fill="url(#grass3d)" />
+      {/* sky + distant hills + grass (horizon at CY) */}
+      <rect x={0} y={0} width={W} height={CY + 1} fill="url(#sky3d)" />
+      <path d={`M0 ${CY} Q120 ${CY - 26} 240 ${CY - 6} T${W} ${CY - 14} V${CY} Z`} fill="#6f8f74" opacity={0.6} />
+      <rect x={0} y={CY} width={W} height={H - CY} fill="url(#grass3d)" />
 
-      {/* fairway corridor + distance lines */}
-      <polygon
-        points={`${edgeL[0].sx},${edgeL[0].sy} ${edgeL[1].sx},${edgeL[1].sy} ${edgeR[1].sx},${edgeR[1].sy} ${edgeR[0].sx},${edgeR[0].sy}`}
-        fill="#69a861" fillOpacity={0.45} stroke="none" />
+      {/* fairway to the horizon, then the dispersion corridors on top */}
+      <polygon points={fairway} fill="#5aa657" fillOpacity={0.55} />
+      <polygon points={band(in5L, out8L)} fill="#e8c074" fillOpacity={0.42} />
+      <polygon points={band(in5R, out8R)} fill="#e8c074" fillOpacity={0.42} />
+      <polygon points={band(in5L, in5R)} fill="#8fd497" fillOpacity={0.55} />
+
+      {/* distance grid — cross-lines span the fairway; labelled up to the longest shot */}
       {marks.map((m) => {
-        const a = project(-CORRIDOR, m, 0, Ymax), b = project(CORRIDOR, m, 0, Ymax);
+        const a = project(-RAIL, m, 0), b = project(RAIL, m, 0);
         return (
           <g key={m}>
-            <line x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke="#ffffff" strokeOpacity={0.28} strokeWidth={1} />
-            <text x={b.sx + 4} y={b.sy + 3} fontSize={8 * (0.5 + a.shrink * 0.5)} fontFamily="JetBrains Mono" fill="#ffffff" fillOpacity={0.6}>{m}</text>
+            <line x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke="#ffffff" strokeOpacity={0.22} strokeWidth={1} />
+            {m <= maxTotal && (
+              <text x={b.sx + 4} y={b.sy + 3} fontSize={9} fontFamily="JetBrains Mono" fill="#ffffff" fillOpacity={0.6}>{m}</text>
+            )}
           </g>
         );
       })}
-      {/* target line */}
-      {(() => { const a = project(0, 0, 0, Ymax), b = project(0, Ymax, 0, Ymax);
-        return <line x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke="#ffffff" strokeOpacity={0.25} strokeDasharray="5 6" strokeWidth={1} />; })()}
-      {/* fairway edges */}
-      <line x1={edgeL[0].sx} y1={edgeL[0].sy} x2={edgeL[1].sx} y2={edgeL[1].sy} stroke="#ffffff" strokeOpacity={0.35} strokeWidth={1} />
-      <line x1={edgeR[0].sx} y1={edgeR[0].sy} x2={edgeR[1].sx} y2={edgeR[1].sy} stroke="#ffffff" strokeOpacity={0.35} strokeWidth={1} />
+
+      {/* corridor edges + labels */}
+      <polyline points={ptsStr(out8L)} fill="none" stroke="#a9760f" strokeOpacity={0.55} strokeWidth={1.2} />
+      <polyline points={ptsStr(out8R)} fill="none" stroke="#a9760f" strokeOpacity={0.55} strokeWidth={1.2} />
+      <polyline points={ptsStr(in5L)} fill="none" stroke="#2a6b41" strokeOpacity={0.6} strokeWidth={1.2} />
+      <polyline points={ptsStr(in5R)} fill="none" stroke="#2a6b41" strokeOpacity={0.6} strokeWidth={1.2} />
+      <text x={lbl5.sx + 2} y={lbl5.sy - 2} fontSize={9} fontFamily="JetBrains Mono" fill="#1f5e36" fillOpacity={0.9}>5%</text>
+      <text x={lbl8.sx + 2} y={lbl8.sy - 2} fontSize={9} fontFamily="JetBrains Mono" fill="#8a5e0c" fillOpacity={0.9}>8%</text>
+
+      {/* centre target line to the horizon */}
+      {(() => { const a = project(0, 0, 0), b = project(0, Yfar, 0);
+        return <line x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke="#ffffff" strokeOpacity={0.3} strokeDasharray="5 6" strokeWidth={1} />; })()}
 
       {/* ghost arcs (previous shots) */}
-      {ghosts.slice(0, 5).map((g, i) => {
-        const gp = flightPoints(g, Ymax);
-        return <path key={g.id ?? i} d={toPath(gp.air)} fill="none" stroke="#ffffff" strokeOpacity={0.14} strokeWidth={1.5} strokeLinecap="round" />;
+      {ghosts.map((g, i) => {
+        const gp = flightPoints(g, project);
+        return <path key={g.id ?? i} d={toPath(gp.air)} fill="none" stroke="#ffffff" strokeOpacity={0.16} strokeWidth={1.5} strokeLinecap="round" />;
       })}
 
+      {/* current shot */}
       {fp && (
         <g>
-          {/* shadow on the grass */}
-          <path d={toPath(fp.shadow)} fill="none" stroke="#1c3a1c" strokeOpacity={0.28} strokeWidth={2} strokeLinecap="round" />
-          <line x1={fp.rollA.sx} y1={fp.rollA.sy} x2={fp.rollB.sx} y2={fp.rollB.sy} stroke="#1c3a1c" strokeOpacity={0.28} strokeWidth={2} />
-          {/* roll */}
+          <path d={toPath(fp.shadow)} fill="none" stroke="#1c3a1c" strokeOpacity={0.3} strokeWidth={2} strokeLinecap="round" />
+          <line x1={fp.rollA.sx} y1={fp.rollA.sy} x2={fp.rollB.sx} y2={fp.rollB.sy} stroke="#1c3a1c" strokeOpacity={0.3} strokeWidth={2} />
           <line x1={fp.rollA.sx} y1={fp.rollA.sy} x2={fp.rollB.sx} y2={fp.rollB.sy} stroke="#e7f0ff" strokeOpacity={0.5} strokeWidth={2} strokeDasharray="2 3" />
-          {/* flight trail (animated draw, re-keyed per shot) */}
-          <path key={shot!.id} d={toPath(fp.air)} fill="none" stroke="url(#trail3d)" strokeWidth={3.5} strokeLinecap="round"
+          {/* flight trail — re-keyed per shot so the draw animation restarts */}
+          <path key={shot!.id} d={toPath(fp.air)} fill="none" stroke="url(#trail3d)" strokeWidth={4} strokeLinecap="round"
             strokeDasharray={len} strokeDashoffset={len}>
             <animate attributeName="stroke-dashoffset" from={len} to="0" dur="0.7s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" />
           </path>
-          {/* apex marker */}
-          <circle cx={fp.air[fp.apexIdx].sx} cy={fp.air[fp.apexIdx].sy} r={2.5} fill="#ffffff" fillOpacity={0.9} />
-          {/* landing ball + shadow */}
-          <ellipse cx={fp.rollB.sx} cy={fp.rollB.sy} rx={4} ry={1.6} fill="#1c3a1c" fillOpacity={0.35} />
-          <circle cx={fp.rollB.sx} cy={fp.rollB.sy - 2} r={3.2} fill="#ffffff" stroke="#C2603A" strokeWidth={1} />
+          <circle cx={fp.air[fp.apexIdx].sx} cy={fp.air[fp.apexIdx].sy} r={3.5} fill="#ffffff" fillOpacity={0.9} />
+          {/* landing ball (enlarged) + ground shadow */}
+          <ellipse cx={fp.rollB.sx} cy={fp.rollB.sy + 1} rx={8} ry={3} fill="#1c3a1c" fillOpacity={0.32} />
+          <circle cx={fp.rollB.sx} cy={fp.rollB.sy - 3} r={6} fill="#ffffff" stroke="#C2603A" strokeWidth={1.5} />
         </g>
       )}
 

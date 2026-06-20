@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Target, Crosshair, Trash2 } from "lucide-react";
 import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
@@ -37,10 +38,17 @@ function HeroStats({ shot }: { shot: Shot }) {
 }
 
 export function LiveSession() {
-  const { adapterId, conn, current, selectedClub, clubArmed, simHit, endSession, deleteShot } = useStore();
+  const { adapterId, conn, current, selectedClub, clubArmed, setLockClub, simHit, endSession, deleteShot } = useStore();
   const shots = current?.shots ?? [];
   const last = shots[0];
   const connected = conn.status === "connected";
+
+  // Keep the chosen club armed across shots — don't re-ask after every ball.
+  // (The player can still switch club anytime via the selector.)
+  useEffect(() => {
+    setLockClub(true);
+    return () => setLockClub(false);
+  }, [setLockClub]);
 
   return (
     <div className="grid gap-4">
@@ -77,8 +85,8 @@ export function LiveSession() {
         <>
           <HeroStats shot={last} />
           <section className="card p-4">
-            <ShotTrajectory3D shot={last} ghosts={shots.slice(1, 6)} />
-            <p className="text-[11px] text-ink/35 text-center mt-2">3D flight · down-the-line view</p>
+            <ShotTrajectory3D shots={shots} />
+            <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
           </section>
           <ShotData shot={last} />
         </>

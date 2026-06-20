@@ -138,8 +138,8 @@ export function Practice() {
 
       <div className="grid md:grid-cols-2 gap-4 items-start">
         <section className="card p-4">
-          <ShotTrajectory3D shot={lastShot} ghosts={(sessionShots ?? []).slice(1, 6)} />
-          <p className="text-[11px] text-ink/35 text-center mt-2">3D flight · down-the-line view</p>
+          <ShotTrajectory3D shots={sessionShots ?? []} />
+          <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
         </section>
         <section className="card p-4">
           <DispersionTarget attempts={shown} />
