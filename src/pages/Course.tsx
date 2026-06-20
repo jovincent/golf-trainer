@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
-import { Flag, Target, Play, RotateCcw, Radio, Undo2, Trash2, ChevronRight, ChevronLeft, BarChart3, Search, X, Share2 } from "lucide-react";
+import { Flag, Target, Play, RotateCcw, Radio, Undo2, Trash2, ChevronRight, ChevronLeft, BarChart3, Search, X, Share2, Download } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { useStore, allShots } from "../store";
 import type { Shot } from "../types";
@@ -10,6 +10,7 @@ import { api } from "../lib/api";
 import { ShareModal } from "../components/ShareModal";
 import { buildRoundShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
+import { fetchCourseFromOSM } from "../lib/osmCourse";
 import {
   type Hole, type Lie, type Vec, type HoleScore, type Round,
   applyShot, distToPin, pathLength, scoreName,
@@ -76,6 +77,18 @@ const COURSE_LIST: CourseDef[] = [
   { id: "crumpin-fox",     label: "Crumpin-Fox Club",            loc: "Massachusetts, USA",             group: "Others", holes: CRUMPIN_FOX },
 ];
 const DEFAULT_COURSE_ID = "tpc-sawgrass";
+
+// User courses downloaded from OpenStreetMap, persisted locally and shown first.
+const USER_COURSES_KEY = "fairway-lab/user-courses/v1";
+function loadUserCourses(): CourseDef[] {
+  try { const raw = localStorage.getItem(USER_COURSES_KEY); return raw ? (JSON.parse(raw) as CourseDef[]) : []; } catch { return []; }
+}
+let USER_COURSES: CourseDef[] = loadUserCourses();
+const saveUserCourses = () => { try { localStorage.setItem(USER_COURSES_KEY, JSON.stringify(USER_COURSES)); } catch { /* ignore */ } };
+const allCourses = (): CourseDef[] => [...USER_COURSES, ...COURSE_LIST];
+const isUserCourse = (id: string) => USER_COURSES.some((c) => c.id === id);
+function addUserCourse(c: CourseDef) { USER_COURSES = [c, ...USER_COURSES.filter((x) => x.id !== c.id)]; saveUserCourses(); }
+function removeUserCourse(id: string) { USER_COURSES = USER_COURSES.filter((x) => x.id !== id); saveUserCourses(); }
 
 // ── Scoring modes ────────────────────────────────────────────────────────────
 type ScoreMode = "stroke" | "stableford" | "par";
@@ -172,22 +185,53 @@ function smallThumb(url: string): string {
 
 // Unified course picker: a photo hero + a horizontal thumbnail rail of every
 // course (grouped). Selecting in either keeps both in sync — no separate list.
-function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourseId: (id: string) => void }) {
-  const idx = Math.max(0, COURSE_LIST.findIndex((c) => c.id === courseId));
-  const c = COURSE_LIST[idx];
+function CourseCarousel({ courseId, setCourseId, onCoursesChanged }: {
+  courseId: string; setCourseId: (id: string) => void; onCoursesChanged: () => void;
+}) {
+  const list = allCourses();
+  const idx = Math.max(0, list.findIndex((c) => c.id === courseId));
+  const c = list[idx] ?? list[0];
   const isReal = !!COURSE_PHOTOS[c.id];
   const photo = COURSE_PHOTOS[c.id] ?? GENERIC_GOLF_PHOTO; // generic golf photo for the others
-  const go = (d: number) => setCourseId(COURSE_LIST[(idx + d + COURSE_LIST.length) % COURSE_LIST.length].id);
+  const go = (d: number) => setCourseId(list[(idx + d + list.length) % list.length].id);
   const par = c.holes.reduce((a, h) => a + h.par, 0);
 
   // quick course search
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const results = q
-    ? COURSE_LIST.filter((cc) =>
+    ? list.filter((cc) =>
         cc.label.toLowerCase().includes(q) || cc.loc.toLowerCase().includes(q) || cc.group.toLowerCase().includes(q),
       ).slice(0, 8)
     : [];
+
+  // download a course from OpenStreetMap
+  const [dlOpen, setDlOpen] = useState(false);
+  const [dlQuery, setDlQuery] = useState("");
+  const [dlBusy, setDlBusy] = useState(false);
+  const [dlErr, setDlErr] = useState<string | null>(null);
+  async function download() {
+    const name = dlQuery.trim();
+    if (!name || dlBusy) return;
+    setDlBusy(true); setDlErr(null);
+    try {
+      const imp = await fetchCourseFromOSM(name);
+      const id = `osm-${Date.now().toString(36)}`;
+      addUserCourse({ id, label: imp.label, loc: imp.loc, group: "Downloaded", holes: imp.holes });
+      setDlQuery(""); setDlOpen(false);
+      onCoursesChanged();
+      setCourseId(id);
+    } catch (e) {
+      setDlErr(e instanceof Error ? e.message : "Download failed.");
+    } finally { setDlBusy(false); }
+  }
+  function removeCurrent() {
+    if (!isUserCourse(c.id)) return;
+    if (!confirm(`Remove the downloaded course “${c.label}”?`)) return;
+    removeUserCourse(c.id);
+    onCoursesChanged();
+    setCourseId(DEFAULT_COURSE_ID);
+  }
 
   return (
     <div className="select-none">
@@ -209,7 +253,13 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
 
         <div className="absolute top-3 left-3 flex items-center gap-1.5">
           <span className="text-[10px] uppercase tracking-widest font-semibold px-2 py-1 rounded-full bg-white/90 text-ink">{c.group}</span>
-          <span className="metric text-[10px] px-2 py-1 rounded-full bg-black/35 text-white">{idx + 1}/{COURSE_LIST.length}</span>
+          <span className="metric text-[10px] px-2 py-1 rounded-full bg-black/35 text-white">{idx + 1}/{list.length}</span>
+          {isUserCourse(c.id) && (
+            <button onClick={removeCurrent} title="Remove this downloaded course"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-black/35 text-white hover:bg-terracotta transition">
+              <Trash2 className="w-3 h-3" /> Remove
+            </button>
+          )}
         </div>
 
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
@@ -261,6 +311,41 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
           </div>
         )}
       </div>
+
+      {/* ── Download a real course from OpenStreetMap ── */}
+      <div className="mt-2">
+        {!dlOpen ? (
+          <button onClick={() => { setDlOpen(true); setDlErr(null); }}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-royal hover:underline">
+            <Download className="w-3.5 h-3.5" /> Download a course from OpenStreetMap
+          </button>
+        ) : (
+          <div className="rounded-xl border border-black/5 bg-panel/40 p-2.5 grid gap-2">
+            <div className="flex items-center gap-2">
+              <input
+                value={dlQuery} autoFocus
+                onChange={(e) => setDlQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") download(); }}
+                placeholder="Golf course name (e.g. “Le Golf National, Guyancourt”)"
+                className="flex-1 min-w-0 rounded-lg bg-surface border border-black/5 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-royal/40"
+              />
+              <button onClick={download} disabled={dlBusy || !dlQuery.trim()}
+                className="inline-flex items-center gap-1.5 bg-royal hover:bg-fairway-light text-white text-sm font-semibold rounded-lg px-3 py-2 transition disabled:opacity-50 shrink-0">
+                {dlBusy
+                  ? <span className="w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                  : <Download className="w-4 h-4" />}
+                {dlBusy ? "Downloading…" : "Download"}
+              </button>
+              <button onClick={() => { setDlOpen(false); setDlErr(null); }} aria-label="Cancel"
+                className="p-1.5 rounded-md text-ink/40 hover:bg-ink/5 transition shrink-0"><X className="w-4 h-4" /></button>
+            </div>
+            {dlErr && <p className="text-xs text-terracotta">{dlErr}</p>}
+            <p className="text-[11px] text-ink/40">
+              Fetches the real layout (holes, greens, bunkers, water) from OpenStreetMap. Works best with a full, specific name plus town/country.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -274,10 +359,11 @@ export function Course() {
   const connected = conn.status === "connected";
 
   const [courseId, setCourseId] = useState<string>(DEFAULT_COURSE_ID);
+  const [, bumpCourses] = useState(0); // re-render when downloaded courses change
   const [scoreMode, setScoreMode] = useState<ScoreMode>("stroke");
   const [teeId, setTeeId] = useState<string>("champ");
   const tee = TEE_SETS.find((t) => t.id === teeId) ?? TEE_SETS[0];
-  const courseMeta = COURSE_LIST.find((c) => c.id === courseId) ?? COURSE_LIST[0];
+  const courseMeta = allCourses().find((c) => c.id === courseId) ?? allCourses()[0];
   const course = courseMeta.holes;
   const coursePar = useMemo(() => course.reduce((a, h) => a + h.par, 0), [course]);
   const nHoles = course.length;
@@ -436,7 +522,7 @@ export function Course() {
       <div className="grid gap-4">
         <section className="card p-4 sm:p-6">
           {/* Hero carousel */}
-          <CourseCarousel courseId={courseId} setCourseId={setCourseId} />
+          <CourseCarousel courseId={courseId} setCourseId={setCourseId} onCoursesChanged={() => bumpCourses((v) => v + 1)} />
           <p className="text-center text-[11px] text-ink/40 mt-2 mb-4">
             Real layout © OpenStreetMap (ODbL) · photo Wikimedia Commons
           </p>
