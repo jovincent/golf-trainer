@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Target, Crosshair, Trash2 } from "lucide-react";
 import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
-import { ShotData } from "../components/ShotData";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { evaluateShot, ratingColor } from "../lib/shotEval";
 import { CLUB_LABELS, type Shot } from "../types";
@@ -86,16 +85,13 @@ export function LiveSession() {
       </section>
 
       {last ? (
-        <>
-          <div className="grid lg:grid-cols-2 gap-4 items-stretch">
-            <section className="card p-4">
-              <ShotTrajectory3D shots={shots} />
-              <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
-            </section>
-            <HeroStats shot={last} />
-          </div>
-          <ShotData shot={last} />
-        </>
+        <div className="grid lg:grid-cols-2 gap-4 items-stretch">
+          <section className="card p-4">
+            <ShotTrajectory3D shots={shots} />
+            <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
+          </section>
+          <HeroStats shot={last} />
+        </div>
       ) : (
         <section className="card p-8 text-center text-ink/40">
           {connected
