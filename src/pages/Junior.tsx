@@ -13,9 +13,9 @@ interface Rating {
 
 function rateShot(shot: Shot): Rating {
   const pct = Math.abs(shot.offlineM) / Math.max(1, shot.carry);
-  if (pct < 0.05) return { stars: 3, emoji: "🎯", label: "Dans le mille !",  color: "#2F8F5B", bg: "bg-emerald-50" };
-  if (pct < 0.08) return { stars: 2, emoji: "😊", label: "Bien joué !",       color: "#C68A14", bg: "bg-amber-50"   };
-                  return { stars: 1, emoji: "💪", label: "Continue comme ça !", color: "#C2603A", bg: "bg-orange-50" };
+  if (pct < 0.05) return { stars: 3, emoji: "🎯", label: "Bullseye!",  color: "#2F8F5B", bg: "bg-emerald-50" };
+  if (pct < 0.08) return { stars: 2, emoji: "😊", label: "Nice shot!",       color: "#C68A14", bg: "bg-amber-50"   };
+                  return { stars: 1, emoji: "💪", label: "Keep it up!", color: "#C2603A", bg: "bg-orange-50" };
 }
 
 // ── Stars ────────────────────────────────────────────────────────────────────
@@ -42,18 +42,18 @@ function DirectionBar({ offlineM, carry }: { offlineM: number; carry: number }) 
   const pos = Math.max(5, Math.min(95, 50 + (offlineM / maxM) * 50));
 
   const dirText = Math.abs(offlineM) < 1
-    ? "Droit !"
+    ? "Straight!"
     : offlineM < 0
-    ? `${Math.abs(offlineM).toFixed(1)} m à gauche`
-    : `${offlineM.toFixed(1)} m à droite`;
+    ? `${Math.abs(offlineM).toFixed(1)} m left`
+    : `${offlineM.toFixed(1)} m right`;
 
   return (
     <div className="w-full select-none">
       {/* Labels */}
       <div className="flex justify-between text-xs font-mono text-ink/40 mb-1 px-1">
-        <span>← gauche</span>
+        <span>← left</span>
         <span className="font-semibold" style={{ color: dotColor }}>{dirText}</span>
-        <span>droite →</span>
+        <span>right →</span>
       </div>
 
       {/* Track */}
@@ -111,7 +111,7 @@ function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
           className="inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3"
           style={{ background: r.color, color: "#fff" }}
         >
-          🏆 Nouveau record !
+          🏆 New record!
         </div>
       )}
 
@@ -138,11 +138,11 @@ function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
       {/* Sub-metrics */}
       <div className="mt-4 flex justify-center gap-6 text-sm">
         <div>
-          <div className="text-ink/40 text-xs">Puissance</div>
+          <div className="text-ink/40 text-xs">Power</div>
           <div className="metric font-semibold">{shot.smashFactor.toFixed(2)}</div>
         </div>
         <div>
-          <div className="text-ink/40 text-xs">Vitesse balle</div>
+          <div className="text-ink/40 text-xs">Ball speed</div>
           <div className="metric font-semibold">{shot.ballSpeed.toFixed(0)} km/h</div>
         </div>
         <div>
@@ -180,10 +180,10 @@ function Waiting() {
     <div className="card p-10 text-center">
       <div className="text-7xl mb-4">🏌️</div>
       <div className="font-display text-2xl font-semibold text-ink/60 mb-2">
-        Frappe une balle !
+        Hit a ball!
       </div>
       <div className="text-sm text-ink/40">
-        Tes résultats apparaîtront ici après chaque coup.
+        Your results will show up here after each shot.
       </div>
     </div>
   );
@@ -219,16 +219,16 @@ export function Junior() {
       {/* Header ─────────────────────────────────── */}
       <div className="card px-5 py-4 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-xl font-bold">Mode Junior 🏌️</h1>
+          <h1 className="font-display text-xl font-bold">Junior Mode 🏌️</h1>
           <p className="text-sm text-ink/50">
             {shots.length === 0
-              ? "Aucune balle encore frappée"
-              : `${shots.length} balle${shots.length > 1 ? "s" : ""} frappée${shots.length > 1 ? "s" : ""}`}
+              ? "No ball hit yet"
+              : `${shots.length} ball${shots.length > 1 ? "s" : ""} hit`}
           </p>
         </div>
         {bestCarry > 0 && (
           <div className="text-right">
-            <div className="text-[11px] text-ink/40 uppercase tracking-wide">Meilleur carry</div>
+            <div className="text-[11px] text-ink/40 uppercase tracking-wide">Best carry</div>
             <div className="metric text-2xl font-bold text-gold">{bestCarry.toFixed(0)} m</div>
           </div>
         )}
@@ -246,7 +246,7 @@ export function Junior() {
           className="w-full py-5 rounded-2xl font-display text-xl font-bold text-white transition active:scale-95"
           style={{ background: "linear-gradient(135deg, #2F8F5B 0%, #3DAE7B 100%)", boxShadow: "0 4px 20px #2F8F5B40" }}
         >
-          ⛳ Frapper une balle !
+          ⛳ Hit a ball!
         </button>
       )}
 
@@ -254,7 +254,7 @@ export function Junior() {
       {history.length > 0 && (
         <div>
           <h2 className="font-display text-sm text-ink/40 uppercase tracking-widest mb-2 px-1">
-            Balles précédentes
+            Previous balls
           </h2>
           <div className="grid grid-cols-5 gap-2">
             {history.map((s, i) => (

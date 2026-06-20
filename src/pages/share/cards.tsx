@@ -35,8 +35,8 @@ function ShareFrame({ eyebrow, context, player, ts, accent = "fairway", children
       <main className="px-7 py-6 grid gap-5">{children}</main>
       <footer className="px-7 py-3.5 flex items-center justify-between text-[11px] text-ink/45"
         style={{ borderTop: "1px solid var(--border-card)", background: "rgb(var(--c-panel) / .4)" }}>
-        <span className="font-semibold text-ink/60">Généré avec FlightLab</span>
-        <span>Analyse de swing &amp; entraînement golf connecté</span>
+        <span className="font-semibold text-ink/60">Generated with FlightLab</span>
+        <span>Swing analysis &amp; connected golf training</span>
       </footer>
     </div>
   );
@@ -71,22 +71,22 @@ export function RoundCard({ player, d }: { player: string; d: RoundShareData }) 
   ].filter((b) => b.v > 0);
 
   return (
-    <ShareFrame eyebrow="Carte de score" context={d.course} player={player} ts={d.playedAt} accent="fairway">
+    <ShareFrame eyebrow="Scorecard" context={d.course} player={player} ts={d.playedAt} accent="fairway">
       {/* Hero */}
       <div className="text-center">
-        <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Score total</div>
+        <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Total score</div>
         <div className="flex items-end justify-center gap-3 mt-1">
           <span className="serif text-7xl font-semibold leading-none text-ink" style={{ fontStyle: "normal" }}>{d.strokes}</span>
           <span className={"mb-2 metric text-2xl font-bold " + vsParColor(d.vsPar)}>{vsParLabel(d.vsPar)}</span>
         </div>
-        <div className="text-sm text-ink/50 mt-1">Par {d.par} · {d.holes.length} trous</div>
+        <div className="text-sm text-ink/50 mt-1">Par {d.par} · {d.holes.length} holes</div>
       </div>
 
       {/* Stat tiles */}
       <div className="grid grid-cols-3 gap-2">
-        {d.girPct != null && <StatTile label="Greens régul." value={`${Math.round(d.girPct)}%`} color="text-fairway" />}
+        {d.girPct != null && <StatTile label="Greens" value={`${Math.round(d.girPct)}%`} color="text-fairway" />}
         {d.firPct != null && <StatTile label="Fairways" value={`${Math.round(d.firPct)}%`} color="text-teal" />}
-        {d.avgPutts != null && <StatTile label="Putts / trou" value={d.avgPutts.toFixed(1)} />}
+        {d.avgPutts != null && <StatTile label="Putts/hole" value={d.avgPutts.toFixed(1)} />}
       </div>
 
       {/* Breakdown pills */}
@@ -103,8 +103,8 @@ export function RoundCard({ player, d }: { player: string; d: RoundShareData }) 
       {/* Mini scorecard */}
       {d.holes.length > 0 && (
         <div className="grid gap-2">
-          <NineRow label="Aller" holes={front} />
-          {back.length > 0 && <NineRow label="Retour" holes={back} />}
+          <NineRow label="Out" holes={front} />
+          {back.length > 0 && <NineRow label="In" holes={back} />}
         </div>
       )}
     </ShareFrame>
@@ -142,11 +142,11 @@ function Cell({ children, className = "" }: { children: ReactNode; className?: s
 export function SessionCard({ player, d }: { player: string; d: SessionShareData }) {
   const maxCarry = d.bars.length ? Math.max(...d.bars.map((b) => b.carry)) : 1;
   return (
-    <ShareFrame eyebrow="Séance d'entraînement" context={d.label} player={player} ts={d.playedAt} accent="teal">
+    <ShareFrame eyebrow="Practice session" context={d.label} player={player} ts={d.playedAt} accent="teal">
       {/* Hero — longest shot */}
       {d.longest && (
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Coup le plus long</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Longest shot</div>
           <div className="flex items-end justify-center gap-2 mt-1">
             <span className="serif text-7xl font-semibold leading-none text-fairway" style={{ fontStyle: "normal" }}>{Math.round(d.longest.carry)}</span>
             <span className="mb-3 text-2xl font-display text-ink/40">m</span>
@@ -159,16 +159,16 @@ export function SessionCard({ player, d }: { player: string; d: SessionShareData
 
       {/* Stat tiles */}
       <div className="grid grid-cols-4 gap-2">
-        <StatTile label="Balles" value={`${d.balls}`} />
-        <StatTile label="Distance cumul." value={`${(d.totalCarry / 1000).toFixed(1)} km`} color="text-teal" />
-        {d.bestSmash && <StatTile label="Smash max" value={d.bestSmash.smash.toFixed(2)} sub={d.bestSmash.club} color="text-gold" />}
-        {d.topBallSpeed && <StatTile label="V. balle max" value={`${Math.round(d.topBallSpeed.speed)}`} sub="km/h" color="text-fairway" />}
+        <StatTile label="Balls" value={`${d.balls}`} />
+        <StatTile label="Total distance" value={`${(d.totalCarry / 1000).toFixed(1)} km`} color="text-teal" />
+        {d.bestSmash && <StatTile label="Max smash" value={d.bestSmash.smash.toFixed(2)} sub={d.bestSmash.club} color="text-gold" />}
+        {d.topBallSpeed && <StatTile label="Max ball speed" value={`${Math.round(d.topBallSpeed.speed)}`} sub="km/h" color="text-fairway" />}
       </div>
 
       {/* Club carry bars */}
       {d.bars.length > 0 && (
         <div className="grid gap-1.5">
-          <div className="text-[9px] uppercase tracking-wide text-ink/45">Carry moyen par club</div>
+          <div className="text-[9px] uppercase tracking-wide text-ink/45">Avg carry per club</div>
           {d.bars.map((b) => (
             <div key={b.club} className="flex items-center gap-2.5">
               <span className="font-display text-sm font-bold text-ink/70 w-9 shrink-0">{b.club}</span>
@@ -193,31 +193,31 @@ export function CombineCard({ player, d }: { player: string; d: CombineShareData
   const gradeColor =
     d.score >= 85 ? "text-gold" : d.score >= 70 ? "text-fairway" : d.score >= 55 ? "text-teal" : "text-ink";
   return (
-    <ShareFrame eyebrow="Combine FlightLab" context="Test standardisé" player={player} ts={d.playedAt} accent="gold">
+    <ShareFrame eyebrow="Combine FlightLab" context="Standardized test" player={player} ts={d.playedAt} accent="gold">
       {/* Hero — score /100 */}
       <div className="text-center">
-        <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Score Combine</div>
+        <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Combine score</div>
         <div className="flex items-end justify-center gap-2 mt-1">
           <span className={"serif text-7xl font-semibold leading-none " + gradeColor} style={{ fontStyle: "normal" }}>{d.score.toFixed(1)}</span>
           <span className="mb-3 text-xl font-display text-ink/30">/100</span>
         </div>
         <div className={"inline-block mt-2 rounded-full px-4 py-1 text-sm font-bold " +
           gradeColor + " " + (d.score >= 85 ? "bg-gold/10" : d.score >= 70 ? "bg-fairway/10" : d.score >= 55 ? "bg-teal/10" : "bg-panel")}>
-          Niveau {d.grade}
+          Level {d.grade}
         </div>
       </div>
 
       {/* Stat tiles */}
       <div className="grid grid-cols-3 gap-2">
-        <StatTile label="Balles" value={`${d.balls}`} />
+        <StatTile label="Balls" value={`${d.balls}`} />
         <StatTile label="Stations" value={`${d.stations.length}`} />
-        {d.best && <StatTile label="Meilleure cible" value={d.best.label} sub={`${Math.round(d.best.avg)} pts`} color="text-fairway" />}
+        {d.best && <StatTile label="Best target" value={d.best.label} sub={`${Math.round(d.best.avg)} pts`} color="text-fairway" />}
       </div>
 
       {/* Station bars */}
       {d.stations.length > 0 && (
         <div className="grid gap-1.5">
-          <div className="text-[9px] uppercase tracking-wide text-ink/45">Score par station</div>
+          <div className="text-[9px] uppercase tracking-wide text-ink/45">Score per station</div>
           {d.stations.map((s) => {
             const c = s.avg >= 70 ? "from-fairway to-teal" : s.avg >= 40 ? "from-teal to-teal" : "from-terracotta to-gold";
             return (
@@ -241,40 +241,40 @@ export function CombineCard({ player, d }: { player: string; d: CombineShareData
 export function StatsCard({ player, d }: { player: string; d: StatsShareData }) {
   const maxCarry = d.bars.length ? Math.max(...d.bars.map((b) => b.carry)) : 1;
   return (
-    <ShareFrame eyebrow="Statistiques" context="Profil de jeu complet" player={player} ts={d.generatedAt} accent="teal">
+    <ShareFrame eyebrow="Stats" context="Full game profile" player={player} ts={d.generatedAt} accent="teal">
       {/* Hero — longest club average */}
       {d.topClub && (
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Club le plus long · {d.topClub.club}</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-ink/40">Longest club · {d.topClub.club}</div>
           <div className="flex items-end justify-center gap-2 mt-1">
             <span className="serif text-7xl font-semibold leading-none text-fairway" style={{ fontStyle: "normal" }}>{Math.round(d.topClub.carry)}</span>
             <span className="mb-3 text-2xl font-display text-ink/40">m</span>
           </div>
           <div className="text-sm text-ink/50 mt-1">
-            carry moyen · smash {d.topClub.smash.toFixed(2)} · {Math.round(d.topClub.ball)} km/h
+            avg carry · smash {d.topClub.smash.toFixed(2)} · {Math.round(d.topClub.ball)} km/h
           </div>
         </div>
       )}
 
       {/* Stat tiles */}
       <div className="grid grid-cols-4 gap-2">
-        <StatTile label="Balles" value={`${d.balls}`} />
+        <StatTile label="Balls" value={`${d.balls}`} />
         <StatTile label="Clubs" value={`${d.clubs}`} />
-        <StatTile label="Smash moyen" value={d.avgSmash.toFixed(2)} color="text-gold" />
-        {d.tightest && <StatTile label="Plus régulier" value={d.tightest.club} sub={`±${d.tightest.sd.toFixed(1)} m`} color="text-teal" />}
+        <StatTile label="Avg smash" value={d.avgSmash.toFixed(2)} color="text-gold" />
+        {d.tightest && <StatTile label="Most consistent" value={d.tightest.club} sub={`±${d.tightest.sd.toFixed(1)} m`} color="text-teal" />}
       </div>
 
       {/* Per-club breakdown: carry (with inline bar) + speeds, smash, dispersion % */}
       {d.bars.length > 0 && (
         <div className="grid gap-1">
-          <div className="text-[9px] uppercase tracking-wide text-ink/45">Détail par club</div>
+          <div className="text-[9px] uppercase tracking-wide text-ink/45">Per-club detail</div>
           <div className="grid items-center gap-x-2 text-right"
             style={{ gridTemplateColumns: "26px 1.6fr 0.9fr 0.9fr 0.8fr 0.9fr" }}>
             {/* header */}
             <span className="text-[8px] uppercase tracking-wide text-ink/40 text-left">Club</span>
             <span className="text-[8px] uppercase tracking-wide text-ink/40">Carry</span>
-            <span className="text-[8px] uppercase tracking-wide text-ink/40">V.club</span>
-            <span className="text-[8px] uppercase tracking-wide text-ink/40">V.balle</span>
+            <span className="text-[8px] uppercase tracking-wide text-ink/40">Club spd</span>
+            <span className="text-[8px] uppercase tracking-wide text-ink/40">Ball spd</span>
             <span className="text-[8px] uppercase tracking-wide text-ink/40">Smash</span>
             <span className="text-[8px] uppercase tracking-wide text-ink/40">Disp.</span>
             {d.bars.map((b) => (
@@ -292,7 +292,7 @@ export function StatsCard({ player, d }: { player: string; d: StatsShareData }) 
               </Fragment>
             ))}
           </div>
-          <p className="text-[8px] text-ink/35 mt-0.5">Carry en m · vitesses en km/h · Disp. = dispersion latérale (% du carry)</p>
+          <p className="text-[8px] text-ink/35 mt-0.5">Carry in m · speeds in km/h · Disp. = lateral dispersion (% of carry)</p>
         </div>
       )}
     </ShareFrame>
@@ -308,5 +308,5 @@ export function ShareCard({ kind, player, data }: {
   if (kind === "session") return <SessionCard player={player} d={data as SessionShareData} />;
   if (kind === "combine") return <CombineCard player={player} d={data as CombineShareData} />;
   if (kind === "stats") return <StatsCard player={player} d={data as StatsShareData} />;
-  return <div className="card p-6 text-ink/50">Type de partage inconnu.</div>;
+  return <div className="card p-6 text-ink/50">Unknown share type.</div>;
 }

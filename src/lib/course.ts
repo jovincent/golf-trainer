@@ -24,8 +24,8 @@ export type Lie =
   | "tee" | "fairway" | "rough" | "sand" | "green" | "water" | "ob" | "holed";
 
 export const LIE_LABEL: Record<Lie, string> = {
-  tee: "Départ", fairway: "Fairway", rough: "Rough", sand: "Bunker",
-  green: "Green", water: "Eau", ob: "Hors-limite", holed: "Dans le trou",
+  tee: "Tee", fairway: "Fairway", rough: "Rough", sand: "Bunker",
+  green: "Green", water: "Water", ob: "Out of bounds", holed: "Holed",
 };
 
 /** Full-swing distance penalty by lie. Bunker −10 %, rough −15 %. */
@@ -97,11 +97,11 @@ export function classifyLie(p: Vec, h: Hole): Lie {
 /** Short descriptor: "Par 4 · 360 m · dogleg droite · 2 bunkers · eau". */
 export function describeHole(h: Hole): string {
   const parts: string[] = [`Par ${h.par}`, `${Math.round(pathLength(h.centerline))} m`];
-  if (h.island) parts.push("green en île");
-  if (h.centerline.length > 2) parts.push(pinOf(h).x >= 0 ? "dogleg droite" : "dogleg gauche");
+  if (h.island) parts.push("island green");
+  if (h.centerline.length > 2) parts.push(pinOf(h).x >= 0 ? "dogleg right" : "dogleg left");
   const sand = h.hazards.filter((z) => z.type === "sand").length;
   if (sand) parts.push(`${sand} bunker${sand > 1 ? "s" : ""}`);
-  if (h.hazards.some((z) => z.type === "water")) parts.push("eau");
+  if (h.hazards.some((z) => z.type === "water")) parts.push("water");
   return parts.join(" · ");
 }
 
@@ -157,7 +157,7 @@ export function puttsForDistance(d: number): number {
 // ---- Scoring ----------------------------------------------------------------
 
 export function scoreName(strokes: number, par: number): string {
-  if (strokes === 1) return "Trou en un !";
+  if (strokes === 1) return "Hole in one!";
   const diff = strokes - par;
   if (diff <= -3) return "Albatross";
   if (diff === -2) return "Eagle";

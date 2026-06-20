@@ -2,6 +2,7 @@ import { Target, Crosshair, Trash2 } from "lucide-react";
 import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
 import { ShotData } from "../components/ShotData";
+import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { evaluateShot, ratingColor } from "../lib/shotEval";
 import { CLUB_LABELS, type Shot } from "../types";
 
@@ -19,16 +20,16 @@ function HeroStat({ label, value, sub, cls }: { label: string; value: string; su
 function HeroStats({ shot }: { shot: Shot }) {
   const c = evaluateShot(shot).ratings;
   const off = shot.offlineM;
-  const offDir = Math.abs(off) < 1 ? "m · droit" : `m · ${off < 0 ? "gauche" : "droite"}`;
+  const offDir = Math.abs(off) < 1 ? "m · straight" : `m · ${off < 0 ? "left" : "right"}`;
   return (
     <section className="card p-4">
-      <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Dernier coup · {shot.club}</h3>
+      <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-        <HeroStat label="Vitesse club" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
-        <HeroStat label="Vitesse balle" value={shot.ballSpeed.toFixed(0)} sub="km/h" cls="text-teal" />
+        <HeroStat label="Club speed" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
+        <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" cls="text-teal" />
         <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} cls={ratingColor(c.smash)} />
         <HeroStat label="Distance" value={shot.carry.toFixed(0)} sub={`carry · ${shot.total.toFixed(0)} m total`} cls="text-royal" />
-        <HeroStat label="Écart latéral" value={Math.abs(off).toFixed(1)} sub={offDir}
+        <HeroStat label="Offline" value={Math.abs(off).toFixed(1)} sub={offDir}
           cls={Math.abs(off) > 12 ? "text-terracotta" : "text-ink"} />
       </div>
     </section>
@@ -46,7 +47,7 @@ export function LiveSession() {
       <section className="card p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-lg text-ink flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-fairway" /> Club en main
+            <Crosshair className="w-5 h-5 text-fairway" /> Club in hand
           </h2>
           <span className="text-sm text-ink/50">{CLUB_LABELS[selectedClub]}</span>
         </div>
@@ -54,7 +55,7 @@ export function LiveSession() {
 
         {!clubArmed && connected && (
           <p className="mt-3 text-sm font-semibold text-gold flex items-center gap-1.5">
-            <Crosshair className="w-4 h-4" /> Choisis le club du prochain coup pour l'enregistrer correctement.
+            <Crosshair className="w-4 h-4" /> Pick the club for the next shot to record it correctly.
           </p>
         )}
 
@@ -62,12 +63,12 @@ export function LiveSession() {
           <button
             onClick={simHit}
             disabled={!connected || !clubArmed}
-            title={!clubArmed ? "Choisis d'abord un club" : undefined}
+            title={!clubArmed ? "Pick a club first" : undefined}
             className="mt-4 w-full sm:w-auto inline-flex items-center justify-center gap-2
                        bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-6 py-3
                        transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Target className="w-4 h-4" /> Frapper une balle
+            <Target className="w-4 h-4" /> Hit a ball
           </button>
         )}
       </section>
@@ -75,25 +76,29 @@ export function LiveSession() {
       {last ? (
         <>
           <HeroStats shot={last} />
+          <section className="card p-4">
+            <ShotTrajectory3D shot={last} ghosts={shots.slice(1, 6)} />
+            <p className="text-[11px] text-ink/35 text-center mt-2">3D flight · down-the-line view</p>
+          </section>
           <ShotData shot={last} />
         </>
       ) : (
         <section className="card p-8 text-center text-ink/40">
           {connected
-            ? "Prêt. Frappe ta première balle pour voir les chiffres apparaître."
-            : "Connecte une source pour démarrer une séance."}
+            ? "Ready. Hit your first ball to see the numbers appear."
+            : "Connect a source to start a session."}
         </section>
       )}
 
       {shots.length > 0 && (
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-black/5">
-            <h3 className="font-display text-base">Séance en cours · {shots.length} balles</h3>
+            <h3 className="font-display text-base">Session in progress · {shots.length} balls</h3>
             <button
               onClick={endSession}
               className="text-xs font-semibold text-ink/60 hover:text-terracotta transition"
             >
-              Terminer & enregistrer
+              End & save
             </button>
           </div>
           <div className="overflow-x-auto">
@@ -103,13 +108,13 @@ export function LiveSession() {
                   <th className="text-left px-4 py-2">Club</th>
                   <th className="px-4 py-2">Carry <span className="text-ink/30 normal-case">(m)</span></th>
                   <th className="px-4 py-2">Total <span className="text-ink/30 normal-case">(m)</span></th>
-                  <th className="px-4 py-2">Balle <span className="text-ink/30 normal-case">(km/h)</span></th>
+                  <th className="px-4 py-2">Ball <span className="text-ink/30 normal-case">(km/h)</span></th>
                   <th className="px-4 py-2">Smash</th>
                   <th className="px-4 py-2">AoA <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Path <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Face <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Spin <span className="text-ink/30 normal-case">(rpm)</span></th>
-                  <th className="px-4 py-2">Écart <span className="text-ink/30 normal-case">(m)</span></th>
+                  <th className="px-4 py-2">Offline <span className="text-ink/30 normal-case">(m)</span></th>
                   <th className="px-4 py-2"></th>
                 </tr>
               </thead>
@@ -133,7 +138,7 @@ export function LiveSession() {
                     <td className="px-2 py-2">
                       <button
                         onClick={() => current && deleteShot(current.id, s.id)}
-                        title="Supprimer ce tir"
+                        title="Delete this shot"
                         className="p-1.5 rounded-lg text-ink/25 hover:text-terracotta hover:bg-terracotta/10 transition"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

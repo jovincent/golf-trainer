@@ -90,7 +90,7 @@ function buildSession(
     id: `demo_${name}_s${idx}_${startedAt}`,
     startedAt,
     endedAt: startedAt + 90 * 60_000,
-    label: new Date(startedAt).toLocaleDateString("fr-FR", {
+    label: new Date(startedAt).toLocaleDateString("en-US", {
       weekday: "short", day: "numeric", month: "short",
     }),
     shots,
@@ -157,9 +157,9 @@ async function fetchAggs(profileId: string): Promise<ClubAgg[]> {
 const RADAR_AXES = [
   { key: "distance",   label: "Distance",    min: 60,  max: 220, invert: false, unit: " m" },
   { key: "smash",      label: "Smash",       min: 1.10, max: 1.52, invert: false, unit: "" },
-  { key: "vitesse",    label: "Vitesse",     min: 60,  max: 210, invert: false, unit: " km/h" },
-  { key: "regularite", label: "Régularité",  min: 0,   max: 26,  invert: true,  unit: " m σ" },
-  { key: "precision",  label: "Précision",   min: 0,   max: 20,  invert: true,  unit: " m σ" },
+  { key: "vitesse",    label: "Speed",     min: 60,  max: 210, invert: false, unit: " km/h" },
+  { key: "regularite", label: "Consistency",  min: 0,   max: 26,  invert: true,  unit: " m σ" },
+  { key: "precision",  label: "Accuracy",   min: 0,   max: 20,  invert: true,  unit: " m σ" },
 ] as const;
 
 type RadarKey = (typeof RADAR_AXES)[number]["key"];
@@ -243,9 +243,9 @@ function RadarComparison({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: 
 
   return (
     <section className="card p-5">
-      <h3 className="font-display text-base mb-0.5">Profil global</h3>
+      <h3 className="font-display text-base mb-0.5">Overall profile</h3>
       <p className="text-sm text-ink/45 mb-1">
-        Score 0–100 par dimension · clubs communs :&nbsp;
+        0–100 score per dimension · shared clubs:&nbsp;
         <span className="metric font-semibold text-ink/60">{sortClubs([...commonClubs]).join(" · ") || "—"}</span>
       </p>
       <div className="flex flex-col sm:flex-row items-center gap-4 mt-3">
@@ -364,7 +364,7 @@ function CompareTable({ clubs, profiles, aggsMap }: {
     <section className="card overflow-hidden">
       <div className="px-4 py-3 border-b border-black/5 flex items-center gap-2">
         <Crosshair className="w-4 h-4 text-teal" />
-        <h3 className="font-display text-base">Carry moyen par club · m</h3>
+        <h3 className="font-display text-base">Avg carry by club · m</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -442,10 +442,10 @@ function SummaryCards({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: Map
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {drL && <Card icon={TrendingUp} label="Driver le plus long" value={`${drL.drCarry!.toFixed(0)} m`} sub={drL.p.name} color={COLORS[drL.i % COLORS.length]} />}
-      <Card icon={Gauge}     label="Meilleur smash factor" value={smashL.avgSmash.toFixed(2)} sub={smashL.p.name} color={COLORS[smashL.i % COLORS.length]} />
-      <Card icon={Crosshair} label="Plus précis (dérive)"  value={`±${dispL.avgDisp.toFixed(1)} m`} sub={dispL.p.name} color={COLORS[dispL.i % COLORS.length]} />
-      <Card icon={TrendingUp} label="Plus régulier (carry)" value={`±${regL.avgReg.toFixed(1)} m`} sub={regL.p.name} color={COLORS[regL.i % COLORS.length]} />
+      {drL && <Card icon={TrendingUp} label="Longest driver" value={`${drL.drCarry!.toFixed(0)} m`} sub={drL.p.name} color={COLORS[drL.i % COLORS.length]} />}
+      <Card icon={Gauge}     label="Best smash factor" value={smashL.avgSmash.toFixed(2)} sub={smashL.p.name} color={COLORS[smashL.i % COLORS.length]} />
+      <Card icon={Crosshair} label="Most accurate (drift)"  value={`±${dispL.avgDisp.toFixed(1)} m`} sub={dispL.p.name} color={COLORS[dispL.i % COLORS.length]} />
+      <Card icon={TrendingUp} label="Most consistent (carry)" value={`±${regL.avgReg.toFixed(1)} m`} sub={regL.p.name} color={COLORS[regL.i % COLORS.length]} />
     </div>
   );
 }
@@ -529,16 +529,16 @@ export function Compare() {
       <section className="card p-4">
         <div className="flex items-center gap-2 mb-3">
           <Users className="w-5 h-5 text-teal" />
-          <h2 className="font-display text-lg leading-none">Comparer les joueurs</h2>
+          <h2 className="font-display text-lg leading-none">Compare players</h2>
           {initializing && (
             <span className="ml-2 text-xs text-ink/40 flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full border-2 border-ink/20 border-t-ink/50 animate-spin" />
-              Génération des profils…
+              Generating profiles…
             </span>
           )}
         </div>
         {profiles.length === 0 ? (
-          <p className="text-sm text-ink/45">Aucun profil trouvé.</p>
+          <p className="text-sm text-ink/45">No profile found.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {profiles.map((p, i) => {
@@ -562,12 +562,12 @@ export function Compare() {
       {/* ── Empty ─────────────────────────────────────────────────── */}
       {!hasData && !initializing && (
         <div className="card p-10 text-center text-ink/40 text-sm">
-          Sélectionne au moins un joueur ayant des séances enregistrées.
+          Select at least one player with recorded sessions.
         </div>
       )}
       {initializing && !hasData && (
         <div className="card p-10 text-center text-ink/40 text-sm animate-pulse">
-          Génération des données de démo…
+          Generating demo data…
         </div>
       )}
 
@@ -575,14 +575,14 @@ export function Compare() {
         <>
           {selectedProfiles.length >= 2 && <SummaryCards profiles={selectedProfiles} aggsMap={aggsMap} />}
           {selectedProfiles.length >= 1 && <RadarComparison profiles={selectedProfiles} aggsMap={aggsMap} />}
-          <RadarBlock title="Carry par club" subtitle="Moyenne des 30 % meilleurs tirs · mètres · plus loin = plus grand"
+          <RadarBlock title="Carry by club" subtitle="Average of best 30% of shots · metres · farther = larger"
             data={buildData("carry")} profiles={selectedProfiles} formatter={v => `${v} m`} />
           {allClubs.length > 0 && <CompareTable clubs={allClubs} profiles={selectedProfiles} aggsMap={aggsMap} />}
-          <RadarBlock title="Smash factor par club" subtitle="Ratio vitesse balle / vitesse club · plus grand = mieux"
+          <RadarBlock title="Smash factor by club" subtitle="Ball speed / club speed ratio · higher = better"
             data={buildData("smash", 2)} profiles={selectedProfiles} domain={[1, 1.5]} formatter={v => v.toFixed(2)} />
-          <RadarBlock title="Régularité carry (σ)" subtitle="Écart-type du carry · polygone plus petit = plus régulier"
+          <RadarBlock title="Carry consistency (σ)" subtitle="Carry standard deviation · smaller polygon = more consistent"
             data={buildData("carrySd")} profiles={selectedProfiles} formatter={v => `±${v} m`} />
-          <RadarBlock title="Dispersion latérale (σ)" subtitle="Écart-type de la dérive · polygone plus petit = plus précis"
+          <RadarBlock title="Lateral dispersion (σ)" subtitle="Drift standard deviation · smaller polygon = more accurate"
             data={buildData("offlineSd")} profiles={selectedProfiles} formatter={v => `±${v} m`} />
         </>
       )}

@@ -24,7 +24,7 @@ export function clubProgression(sessions: Session[], club: Club): SessionPoint[]
       return [{
         sessionId: sess.id,
         date: sess.startedAt,
-        label: new Date(sess.startedAt).toLocaleDateString("fr-FR", {
+        label: new Date(sess.startedAt).toLocaleDateString("en-US", {
           day: "2-digit", month: "2-digit",
         }),
         n: cs.length,

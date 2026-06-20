@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Target, Radio, RotateCcw, Trophy } from "lucide-react";
 import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
+import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { applyShot, distToPin, type Hole } from "../lib/course";
 
 interface Attempt { rx: number; ry: number; prox: number; club: string; dist: number }
@@ -14,7 +15,8 @@ const practiceHole = (D: number): Hole => ({
 
 export function Practice() {
   const { adapterId, conn, simHit, connect } = useStore();
-  const lastShot = useStore((s) => s.current?.shots[0]);
+  const sessionShots = useStore((s) => s.current?.shots);
+  const lastShot = sessionShots?.[0];
   const clubArmed = useStore((s) => s.clubArmed);
   const selectedClub = useStore((s) => s.selectedClub);
   const setLockClub = useStore((s) => s.setLockClub);
@@ -65,40 +67,40 @@ export function Practice() {
     <div className="grid lg:grid-cols-[300px_1fr] gap-4 items-start">
       <div className="grid gap-3">
         <section className="card p-5 grid gap-3">
-          <h2 className="font-display text-lg flex items-center gap-2"><Target className="w-5 h-5 text-fairway" /> Entraînement ciblé</h2>
+          <h2 className="font-display text-lg flex items-center gap-2"><Target className="w-5 h-5 text-fairway" /> Targeted practice</h2>
 
           {challenge === null ? (
             <>
               <label className="grid gap-1 text-sm text-ink/60">
-                <span className="flex justify-between">Distance cible <b className="metric">{target} m</b></span>
+                <span className="flex justify-between">Target distance <b className="metric">{target} m</b></span>
                 <input type="range" min={40} max={200} step={5} value={target} disabled={random}
                   onChange={(e) => setTarget(Number(e.target.value))} className="accent-fairway disabled:opacity-40" />
               </label>
               <label className="flex items-center gap-2 text-sm text-ink/60 cursor-pointer select-none">
                 <input type="checkbox" checked={random} onChange={(e) => setRandom(e.target.checked)} className="accent-fairway" />
-                Distance aléatoire à chaque balle
+                Random distance each ball
               </label>
             </>
           ) : (
             <div className="bg-gold/10 rounded-xl px-3 py-2 text-sm text-gold flex items-center gap-2">
               <Trophy className="w-4 h-4" />
-              {challengeDone ? "Défi terminé !" : `Défi closest-to-pin · ${challenge} balle${challenge > 1 ? "s" : ""} restante${challenge > 1 ? "s" : ""}`}
+              {challengeDone ? "Challenge complete!" : `Closest-to-pin challenge · ${challenge} ball${challenge > 1 ? "s" : ""} left`}
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <Tile label="Balles" value={`${shown.length}`} />
-            <Tile label="Plus proche" value={proxArr.length ? `${best.toFixed(1)} m` : "–"} accent="fairway" />
-            <Tile label="Proximité moy." value={proxArr.length ? `${avg.toFixed(1)} m` : "–"} />
+            <Tile label="Balls" value={`${shown.length}`} />
+            <Tile label="Closest" value={proxArr.length ? `${best.toFixed(1)} m` : "–"} accent="fairway" />
+            <Tile label="Avg proximity" value={proxArr.length ? `${avg.toFixed(1)} m` : "–"} />
             <Tile label="≤ 3 m" value={`${within3}/${shown.length}`} />
-            <Tile label="Sur le green" value={`${onGreen}/${shown.length}`} accent="teal" />
+            <Tile label="On green" value={`${onGreen}/${shown.length}`} accent="teal" />
             <Tile label="GIR %" value={shown.length ? `${Math.round((onGreen / shown.length) * 100)} %` : "–"} />
           </div>
 
           {connected && !challengeDone && (
             <div className="grid gap-1.5">
               <span className="text-[11px] uppercase tracking-wide text-ink/45">
-                Club {challenge !== null ? "du défi" : "de la série"} {clubArmed ? `· ${selectedClub}` : "— à choisir"}
+                {challenge !== null ? "Challenge club" : "Set club"} {clubArmed ? `· ${selectedClub}` : "— to pick"}
               </span>
               <ClubSelector />
             </div>
@@ -107,37 +109,43 @@ export function Practice() {
           {!connected ? (
             <button onClick={() => connect()} className="w-full inline-flex items-center justify-center gap-2
               bg-fairway hover:bg-fairway-light text-white font-semibold rounded-xl px-5 py-3 transition">
-              <Radio className="w-4 h-4" /> Connecter pour frapper
+              <Radio className="w-4 h-4" /> Connect to hit
             </button>
           ) : adapterId === "simulator" && !challengeDone ? (
             <button onClick={simHit} disabled={!clubArmed}
-              title={!clubArmed ? "Choisis d'abord un club" : undefined}
+              title={!clubArmed ? "Pick a club first" : undefined}
               className="w-full inline-flex items-center justify-center gap-2
               bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition
               disabled:opacity-50 disabled:cursor-not-allowed">
-              <Target className="w-4 h-4" /> {clubArmed ? "Frapper" : "Choisis un club"} {random && clubArmed ? `(${target} m)` : ""}
+              <Target className="w-4 h-4" /> {clubArmed ? "Hit" : "Pick a club"} {random && clubArmed ? `(${target} m)` : ""}
             </button>
           ) : !challengeDone ? (
-            <p className="text-sm text-ink/50">{clubArmed ? "Frappe ta balle — le R10 l'enverra." : "Choisis le club avant de frapper."}</p>
+            <p className="text-sm text-ink/50">{clubArmed ? "Hit your ball — the R10 will send it." : "Pick a club before hitting."}</p>
           ) : null}
 
           <div className="flex gap-2">
             <button onClick={startChallenge} className="flex-1 inline-flex items-center justify-center gap-2 text-sm font-semibold
               rounded-lg px-3 py-2 bg-gold/10 text-gold hover:bg-gold/20 transition">
-              <Trophy className="w-4 h-4" /> Défi 10 balles
+              <Trophy className="w-4 h-4" /> 10-ball challenge
             </button>
             <button onClick={reset} className="inline-flex items-center justify-center gap-2 text-sm font-semibold
               rounded-lg px-3 py-2 bg-panel text-ink/60 hover:bg-ink/5 transition">
-              <RotateCcw className="w-4 h-4" /> Réinitialiser
+              <RotateCcw className="w-4 h-4" /> Reset
             </button>
           </div>
         </section>
       </div>
 
-      <section className="card p-4">
-        <DispersionTarget attempts={shown} />
-        <p className="text-[11px] text-ink/35 text-center mt-2">Vue cible · drapeau au centre, anneaux à 3 / 6 / 8 m</p>
-      </section>
+      <div className="grid md:grid-cols-2 gap-4 items-start">
+        <section className="card p-4">
+          <ShotTrajectory3D shot={lastShot} ghosts={(sessionShots ?? []).slice(1, 6)} />
+          <p className="text-[11px] text-ink/35 text-center mt-2">3D flight · down-the-line view</p>
+        </section>
+        <section className="card p-4">
+          <DispersionTarget attempts={shown} />
+          <p className="text-[11px] text-ink/35 text-center mt-2">Target view · flag at center, rings at 3 / 6 / 8 m</p>
+        </section>
+      </div>
     </div>
   );
 }

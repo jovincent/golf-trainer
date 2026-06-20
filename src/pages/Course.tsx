@@ -46,20 +46,20 @@ const RESUME_KEY = "fairway-lab/round-in-progress/v1";
 
 interface CourseDef { id: string; label: string; loc: string; group: string; holes: Hole[] }
 const COURSE_LIST: CourseDef[] = [
-  // ── Parcours mythiques (TPC Sawgrass en tête) ──
-  { id: "tpc-sawgrass",    label: "TPC Sawgrass — Stadium",      loc: "Floride, USA · 17 en île",       group: "Mythiques", holes: GOLF_SAWGRASS },
-  { id: "st-andrews-old",  label: "St Andrews — Old Course",     loc: "Fife, Écosse · The Home of Golf", group: "Mythiques", holes: GOLF_ST_ANDREWS },
-  { id: "augusta-national",label: "Augusta National",            loc: "Géorgie, USA · The Masters",     group: "Mythiques", holes: GOLF_AUGUSTA },
-  { id: "pebble-beach",    label: "Pebble Beach Golf Links",     loc: "Californie, USA",                group: "Mythiques", holes: PEBBLE_BEACH },
-  { id: "pinehurst-no2",   label: "Pinehurst No. 2",             loc: "Caroline du Nord, USA",          group: "Mythiques", holes: GOLF_PINEHURST2 },
-  { id: "carnoustie",      label: "Carnoustie",                  loc: "Angus, Écosse · The Open",       group: "Mythiques", holes: GOLF_CARNOUSTIE },
-  { id: "muirfield",       label: "Muirfield",                   loc: "East Lothian, Écosse",           group: "Mythiques", holes: GOLF_MUIRFIELD },
-  { id: "royal-county-down",label: "Royal County Down",          loc: "Newcastle, Irlande du Nord",     group: "Mythiques", holes: GOLF_COUNTY_DOWN },
-  { id: "royal-birkdale",  label: "Royal Birkdale",              loc: "Merseyside, Angleterre",         group: "Mythiques", holes: GOLF_BIRKDALE },
-  { id: "kiawah-ocean",    label: "Kiawah — Ocean Course",       loc: "Caroline du Sud, USA",           group: "Mythiques", holes: GOLF_KIAWAH },
-  { id: "whistling-straits",label: "Whistling Straits",          loc: "Wisconsin, USA · Ryder Cup",     group: "Mythiques", holes: GOLF_WHISTLING },
-  { id: "valderrama",      label: "Valderrama",                  loc: "Andalousie, Espagne",            group: "Mythiques", holes: GOLF_VALDERRAMA },
-  { id: "royal-melbourne", label: "Royal Melbourne — West",      loc: "Victoria, Australie",            group: "Mythiques", holes: GOLF_ROYAL_MELB },
+  // ── Iconic courses (TPC Sawgrass en tête) ──
+  { id: "tpc-sawgrass",    label: "TPC Sawgrass — Stadium",      loc: "Florida, USA · island 17th",       group: "Iconic", holes: GOLF_SAWGRASS },
+  { id: "st-andrews-old",  label: "St Andrews — Old Course",     loc: "Fife, Scotland · The Home of Golf", group: "Iconic", holes: GOLF_ST_ANDREWS },
+  { id: "augusta-national",label: "Augusta National",            loc: "Georgia, USA · The Masters",     group: "Iconic", holes: GOLF_AUGUSTA },
+  { id: "pebble-beach",    label: "Pebble Beach Golf Links",     loc: "California, USA",                group: "Iconic", holes: PEBBLE_BEACH },
+  { id: "pinehurst-no2",   label: "Pinehurst No. 2",             loc: "North Carolina, USA",          group: "Iconic", holes: GOLF_PINEHURST2 },
+  { id: "carnoustie",      label: "Carnoustie",                  loc: "Angus, Scotland · The Open",       group: "Iconic", holes: GOLF_CARNOUSTIE },
+  { id: "muirfield",       label: "Muirfield",                   loc: "East Lothian, Scotland",           group: "Iconic", holes: GOLF_MUIRFIELD },
+  { id: "royal-county-down",label: "Royal County Down",          loc: "Newcastle, Northern Ireland",     group: "Iconic", holes: GOLF_COUNTY_DOWN },
+  { id: "royal-birkdale",  label: "Royal Birkdale",              loc: "Merseyside, England",         group: "Iconic", holes: GOLF_BIRKDALE },
+  { id: "kiawah-ocean",    label: "Kiawah — Ocean Course",       loc: "South Carolina, USA",           group: "Iconic", holes: GOLF_KIAWAH },
+  { id: "whistling-straits",label: "Whistling Straits",          loc: "Wisconsin, USA · Ryder Cup",     group: "Iconic", holes: GOLF_WHISTLING },
+  { id: "valderrama",      label: "Valderrama",                  loc: "Andalusia, Spain",            group: "Iconic", holes: GOLF_VALDERRAMA },
+  { id: "royal-melbourne", label: "Royal Melbourne — West",      loc: "Victoria, Australia",            group: "Iconic", holes: GOLF_ROYAL_MELB },
   // ── Auvergne, France ──
   { id: "golf-des-volcans",   label: "Golf des Volcans",            loc: "Orcines (63)",            group: "Auvergne", holes: GOLF_DES_VOLCANS },
   { id: "golf-vichy",         label: "Sporting Club de Vichy",      loc: "Vichy (03)",              group: "Auvergne", holes: GOLF_VICHY },
@@ -69,20 +69,20 @@ const COURSE_LIST: CourseDef[] = [
   { id: "golf-montpensier",   label: "Forêt de Montpensier",        loc: "Montpensier (63)",        group: "Auvergne", holes: GOLF_MONTPENSIER },
   { id: "golf-la-plaine",     label: "Golf de la Plaine",           loc: "Combronde (63)",          group: "Auvergne", holes: GOLF_LA_PLAINE },
   { id: "golf-riom",          label: "Golf de Riom",                loc: "Riom (63) · compact",     group: "Auvergne", holes: GOLF_RIOM },
-  { id: "golf-royat",         label: "Golf de Royat-Charade",       loc: "Royat (63) · 9 trous",    group: "Auvergne", holes: GOLF_ROYAT },
-  { id: "golf-puy-en-velay",  label: "Golf du Puy-en-Velay",        loc: "Le Puy-en-Velay (43) · 9 trous", group: "Auvergne", holes: GOLF_PUY },
-  { id: "golf-briailles",     label: "Golf de Briailles",           loc: "Avermes (03) · 12 trous", group: "Auvergne", holes: GOLF_BRIAILLES },
+  { id: "golf-royat",         label: "Golf de Royat-Charade",       loc: "Royat (63) · 9 holes",    group: "Auvergne", holes: GOLF_ROYAT },
+  { id: "golf-puy-en-velay",  label: "Golf du Puy-en-Velay",        loc: "Le Puy-en-Velay (43) · 9 holes", group: "Auvergne", holes: GOLF_PUY },
+  { id: "golf-briailles",     label: "Golf de Briailles",           loc: "Avermes (03) · 12 holes", group: "Auvergne", holes: GOLF_BRIAILLES },
   // ── Autres ──
-  { id: "crumpin-fox",     label: "Crumpin-Fox Club",            loc: "Massachusetts, USA",             group: "Autres", holes: CRUMPIN_FOX },
+  { id: "crumpin-fox",     label: "Crumpin-Fox Club",            loc: "Massachusetts, USA",             group: "Others", holes: CRUMPIN_FOX },
 ];
 const DEFAULT_COURSE_ID = "tpc-sawgrass";
 
 // ── Scoring modes ────────────────────────────────────────────────────────────
 type ScoreMode = "stroke" | "stableford" | "par";
 const SCORE_MODES: { id: ScoreMode; label: string; hint: string }[] = [
-  { id: "stroke",     label: "Stroke play", hint: "total des coups" },
-  { id: "stableford", label: "Stableford",  hint: "points par trou" },
-  { id: "par",        label: "Contre le par", hint: "trous gagnés / perdus" },
+  { id: "stroke",     label: "Stroke play", hint: "total strokes" },
+  { id: "stableford", label: "Stableford",  hint: "points per hole" },
+  { id: "par",        label: "Against par", hint: "holes won / lost" },
 ];
 /** Stableford points (par = 2, birdie = 3, eagle = 4, bogey = 1, double+ = 0). */
 function stablefordPoints(strokes: number, par: number): number {
@@ -110,10 +110,10 @@ function modeScoreLabel(card: { strokes: number; par: number }[], mode: ScoreMod
 // hole — the tee box is moved down the centreline, shortening the carry.
 interface TeeSet { id: string; label: string; color: string; factor: number }
 const TEE_SETS: TeeSet[] = [
-  { id: "champ",  label: "Championnat", color: "#16294D", factor: 1.0 },
-  { id: "back",   label: "Back",        color: "#FFFFFF", factor: 0.93 },
-  { id: "middle", label: "Milieu",      color: "#F4C534", factor: 0.84 },
-  { id: "front",  label: "Avant",       color: "#C2603A", factor: 0.74 },
+  { id: "champ",  label: "Championship", color: "#16294D", factor: 1.0 },
+  { id: "back",   label: "Back",         color: "#FFFFFF", factor: 0.93 },
+  { id: "middle", label: "Middle",       color: "#F4C534", factor: 0.84 },
+  { id: "front",  label: "Front",        color: "#C2603A", factor: 0.74 },
 ];
 /** Point on the centreline `d` metres forward from the tee (with the direction unit). */
 function pointFromTee(line: Vec[], d: number): Vec {
@@ -198,11 +198,11 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
         <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,20,40,0.92) 0%, rgba(11,20,40,0.15) 45%, rgba(11,20,40,0) 70%)" }} />
         <div className="absolute left-0 right-0 top-0 h-[3px] bg-lisere" />
 
-        <button onClick={() => go(-1)} aria-label="Parcours précédent"
+        <button onClick={() => go(-1)} aria-label="Previous course"
           className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 grid place-items-center rounded-full bg-white/85 hover:bg-white text-ink shadow-soft transition">
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <button onClick={() => go(1)} aria-label="Parcours suivant"
+        <button onClick={() => go(1)} aria-label="Next course"
           className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 grid place-items-center rounded-full bg-white/85 hover:bg-white text-ink shadow-soft transition">
           <ChevronRight className="w-5 h-5" />
         </button>
@@ -214,7 +214,7 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
 
         <div className="absolute left-4 right-4 bottom-3 text-left text-white">
           <h2 className="font-extrabold text-2xl leading-tight drop-shadow">{c.label}</h2>
-          <p className="text-sm text-white/80">Par {par} · {c.holes.length} trous · {c.loc}</p>
+          <p className="text-sm text-white/80">Par {par} · {c.holes.length} holes · {c.loc}</p>
           <a href={photo.source} target="_blank" rel="noreferrer"
             className="inline-block mt-1 text-[10px] text-white/55 hover:text-white/90 transition">
             {isReal ? "📷" : "🖼️ Illustration ·"} {photo.author} · {photo.license} · Wikimedia Commons
@@ -228,12 +228,12 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un parcours (nom, lieu, catégorie)…"
+          placeholder="Search for a course (name, location, category)…"
           className="w-full rounded-xl bg-panel/60 border border-black/5 pl-9 pr-9 py-2.5 text-sm
                      outline-none focus:ring-2 focus:ring-royal/40 focus:bg-surface transition"
         />
         {query && (
-          <button onClick={() => setQuery("")} aria-label="Effacer"
+          <button onClick={() => setQuery("")} aria-label="Clear"
             className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-ink/40 hover:text-ink hover:bg-ink/5 transition">
             <X className="w-4 h-4" />
           </button>
@@ -242,7 +242,7 @@ function CourseCarousel({ courseId, setCourseId }: { courseId: string; setCourse
         {q && (
           <div className="absolute z-20 left-0 right-0 mt-1.5 rounded-xl bg-surface shadow-soft border border-black/5 overflow-hidden max-h-72 overflow-y-auto">
             {results.length === 0 ? (
-              <div className="px-4 py-3 text-sm text-ink/40">Aucun parcours trouvé.</div>
+              <div className="px-4 py-3 text-sm text-ink/40">No course found.</div>
             ) : results.map((cc) => {
               const ph = COURSE_PHOTOS[cc.id] ?? GENERIC_GOLF_PHOTO;
               const on = cc.id === courseId;
@@ -438,7 +438,7 @@ export function Course() {
           {/* Hero carousel */}
           <CourseCarousel courseId={courseId} setCourseId={setCourseId} />
           <p className="text-center text-[11px] text-ink/40 mt-2 mb-4">
-            Tracé réel © OpenStreetMap (ODbL) · photo Wikimedia Commons
+            Real layout © OpenStreetMap (ODbL) · photo Wikimedia Commons
           </p>
 
 
@@ -458,7 +458,7 @@ export function Course() {
 
           {/* Tee set */}
           <div className="flex items-center justify-center gap-1.5 mb-4">
-            <span className="text-[11px] text-ink/40 mr-1">Départ</span>
+            <span className="text-[11px] text-ink/40 mr-1">Tee</span>
             {TEE_SETS.map((t) => {
               const on = t.id === teeId;
               const yards = Math.round(coursePar > 0 ? course.reduce((a, h) => a + pathLength(h.centerline), 0) * t.factor : 0);
@@ -477,12 +477,12 @@ export function Course() {
             {resumable && (
               <button onClick={resumeRound} className="inline-flex items-center gap-2 bg-ink hover:bg-ink/90
                 text-white font-semibold rounded-xl px-6 py-3 transition">
-                <Play className="w-4 h-4" /> Reprendre (trou {resumable.holeIdx + 1})
+                <Play className="w-4 h-4" /> Resume (hole {resumable.holeIdx + 1})
               </button>
             )}
             <button onClick={startRound} className={"inline-flex items-center gap-2 font-semibold rounded-xl px-6 py-3 transition " +
               (resumable ? "bg-panel hover:bg-ink/5 text-ink/70" : "bg-fairway hover:bg-fairway-light text-white")}>
-              {resumable ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4" />} Nouvelle partie
+              {resumable ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4" />} New round
             </button>
           </div>
         </section>
@@ -500,16 +500,16 @@ export function Course() {
     return (
       <div className="grid gap-4">
         <section className="card p-6 text-center">
-          <h2 className="font-display text-xl">Partie terminée 🏁</h2>
+          <h2 className="font-display text-xl">Round complete 🏁</h2>
           <div className="text-[11px] uppercase tracking-widest text-ink/40 mt-1">{modeName}</div>
           <div className="metric text-5xl font-bold text-fairway my-1">{modeScoreLabel(card, scoreMode)}</div>
           <p className="text-sm text-ink/60">
-            {total} coups · Par {coursePar} ({total - coursePar >= 0 ? "+" : ""}{total - coursePar}) · {muls} mulligan{muls > 1 ? "s" : ""}
+            {total} strokes · Par {coursePar} ({total - coursePar >= 0 ? "+" : ""}{total - coursePar}) · {muls} mulligan{muls > 1 ? "s" : ""}
           </p>
           <div className="mt-4 flex items-center justify-center gap-2">
             <button onClick={startRound} className="inline-flex items-center gap-2 bg-fairway hover:bg-fairway-light
               text-white font-semibold rounded-xl px-6 py-3 transition">
-              <RotateCcw className="w-4 h-4" /> Nouvelle partie
+              <RotateCcw className="w-4 h-4" /> New round
             </button>
             <button onClick={() => setShare(buildRoundShare(
               { id: `round_${roundStart.current}`, startedAt: roundStart.current, endedAt: Date.now(),
@@ -517,7 +517,7 @@ export function Course() {
               courseMeta.label, player,
             ))} className="inline-flex items-center gap-2 bg-ink hover:bg-ink/90
               text-white font-semibold rounded-xl px-6 py-3 transition">
-              <Share2 className="w-4 h-4" /> Partager
+              <Share2 className="w-4 h-4" /> Share
             </button>
           </div>
         </section>
@@ -538,7 +538,7 @@ export function Course() {
           <section className="card p-5">
             <div className="flex items-center justify-between gap-2">
               <h2 className="font-display text-lg flex items-center gap-2">
-                <Flag className="w-5 h-5 text-terracotta" /> Trou {H.number}/{nHoles}
+                <Flag className="w-5 h-5 text-terracotta" /> Hole {H.number}/{nHoles}
                 {H.name && <span className="text-ink/40 font-normal italic">· {H.name}</span>}
               </h2>
               <span className="metric text-xs font-semibold rounded-full px-2.5 py-1 bg-panel text-ink/70">Par {H.par}</span>
@@ -548,56 +548,56 @@ export function Course() {
             {holeStatus === "playing" ? (
               <div className="mt-4 grid gap-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <Stat label="Au drapeau" value={`${dist.toFixed(0)} m`} accent="terracotta" />
+                  <Stat label="To pin" value={`${dist.toFixed(0)} m`} accent="terracotta" />
                   <Stat label="Lie" value={LIE_LABEL[lie]} />
-                  <Stat label="Coups" value={`${strokes}`} />
+                  <Stat label="Strokes" value={`${strokes}`} />
                   <Stat label="Mulligans" value={`${mulligans}`} accent={mulligans ? "gold" : undefined} />
                 </div>
 
                 {lie === "green" ? (
                   <>
                     <p className="text-sm text-ink/60">
-                      Green à <b>{dist.toFixed(1)} m</b> → <b>{dist <= 3 ? "≤ 3 m : 1 putt" : "2 putts"}</b>.
+                      Green at <b>{dist.toFixed(1)} m</b> → <b>{dist <= 3 ? "≤ 3 m: 1 putt" : "2 putts"}</b>.
                     </p>
                     <button onClick={holeOut} className="w-full inline-flex items-center justify-center gap-2
                       bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition">
-                      <Target className="w-4 h-4" /> Rentrer ({putts} putt{putts > 1 ? "s" : ""})
+                      <Target className="w-4 h-4" /> Hole out ({putts} putt{putts > 1 ? "s" : ""})
                     </button>
                   </>
                 ) : (
                   <>
                     <p className="text-xs text-ink/50">
-                      🎯 Clique la carte pour viser — <b className="metric">{aimDist.toFixed(0)} m</b>
+                      🎯 Click the map to aim — <b className="metric">{aimDist.toFixed(0)} m</b>
                       {suggestion && <>
-                      {" · "}club suggéré <b className="metric">{suggestion}</b>
-                      {isApproach && <span className="text-teal"> · vise le centre du green</span>}
+                      {" · "}suggested club <b className="metric">{suggestion}</b>
+                      {isApproach && <span className="text-teal"> · aim for the green center</span>}
                     </>}
                     </p>
                     <label className="flex items-center gap-2 text-xs text-ink/55 cursor-pointer select-none">
                       <input type="checkbox" checked={autoClub} onChange={(e) => setAutoClub(e.target.checked)} className="accent-fairway" />
-                      Club automatique (suit la distance visée)
+                      Auto club (follows aimed distance)
                     </label>
                     <div className={autoClub ? "opacity-50 pointer-events-none" : ""}>
                       <ClubSelector />
                     </div>
                     {!autoClub && !clubArmed && connected && (
-                      <p className="text-xs font-semibold text-gold">Choisis le club du prochain coup.</p>
+                      <p className="text-xs font-semibold text-gold">Pick the club for the next shot.</p>
                     )}
                     {!connected ? (
                       <button onClick={() => connect()} className="w-full inline-flex items-center justify-center gap-2
                         bg-fairway hover:bg-fairway-light text-white font-semibold rounded-xl px-5 py-3 transition">
-                        <Radio className="w-4 h-4" /> Connecter pour frapper
+                        <Radio className="w-4 h-4" /> Connect to hit
                       </button>
                     ) : adapterId === "simulator" ? (
                       <button onClick={simHit} disabled={!clubArmed}
-                        title={!clubArmed ? "Choisis d'abord un club" : undefined}
+                        title={!clubArmed ? "Pick a club first" : undefined}
                         className="w-full inline-flex items-center justify-center gap-2
                         bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition
                         disabled:opacity-50 disabled:cursor-not-allowed">
-                        <Target className="w-4 h-4" /> {clubArmed ? "Frapper" : "Choisis un club"}
+                        <Target className="w-4 h-4" /> {clubArmed ? "Hit" : "Pick a club"}
                       </button>
                     ) : (
-                      <p className="text-sm text-ink/50">{clubArmed ? "Frappe ta balle — le R10 l'enverra." : "Choisis le club avant de frapper."}</p>
+                      <p className="text-sm text-ink/50">{clubArmed ? "Hit your ball — the R10 will send it." : "Pick the club before hitting."}</p>
                     )}
                   </>
                 )}
@@ -605,7 +605,7 @@ export function Course() {
                 {undo.length > 0 && (
                   <button onClick={mulligan} className="w-full inline-flex items-center justify-center gap-2 text-sm
                     font-semibold rounded-lg px-4 py-2 bg-gold/10 text-gold hover:bg-gold/20 transition">
-                    <Undo2 className="w-4 h-4" /> Mulligan (rejouer le dernier coup)
+                    <Undo2 className="w-4 h-4" /> Mulligan (replay the last shot)
                   </button>
                 )}
               </div>
@@ -618,7 +618,7 @@ export function Course() {
                 </div>
                 <button onClick={nextHole} className="mt-1 w-full inline-flex items-center justify-center gap-2
                   bg-fairway hover:bg-fairway-light text-white font-semibold rounded-xl px-5 py-3 transition">
-                  {holeIdx < nHoles - 1 ? <>Trou suivant <ChevronRight className="w-4 h-4" /></> : <>Terminer la partie 🏁</>}
+                  {holeIdx < nHoles - 1 ? <>Next hole <ChevronRight className="w-4 h-4" /></> : <>Finish round 🏁</>}
                 </button>
               </div>
             )}
@@ -628,7 +628,7 @@ export function Course() {
 
           {log.length > 0 && (
             <section className="card overflow-hidden">
-              <h3 className="text-[11px] uppercase tracking-wide text-ink/40 px-4 py-2.5 border-b border-black/5">Déroulé</h3>
+              <h3 className="text-[11px] uppercase tracking-wide text-ink/40 px-4 py-2.5 border-b border-black/5">Sequence</h3>
               <div className="divide-y divide-black/[0.04]">
                 {log.map((e) => (
                   <div key={e.n} className="flex items-center gap-2 px-4 py-2 text-sm">
@@ -668,22 +668,22 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 
 // Metrics of the shot just played — shown in the left column after each tee/approach shot.
 function ShotMetricsCard({ shot, n }: { shot: Shot; n: number }) {
-  const lr = (v: number | undefined) => (v == null ? "—" : `${Math.abs(v).toFixed(1)} ${v < 0 ? "G" : "D"}`);
+  const lr = (v: number | undefined) => (v == null ? "—" : `${Math.abs(v).toFixed(1)} ${v < 0 ? "L" : "R"}`);
   const cells: Array<{ k: string; v: string; accent?: boolean }> = [
     { k: "Carry", v: `${shot.carry.toFixed(0)} m`, accent: true },
     { k: "Total", v: `${shot.total.toFixed(0)} m` },
-    { k: "V. balle", v: `${shot.ballSpeed.toFixed(0)} km/h` },
-    { k: "V. club", v: `${shot.clubSpeed.toFixed(0)} km/h` },
+    { k: "Ball speed", v: `${shot.ballSpeed.toFixed(0)} km/h` },
+    { k: "Club speed", v: `${shot.clubSpeed.toFixed(0)} km/h` },
     { k: "Smash", v: shot.smashFactor.toFixed(2) },
-    { k: "Lancement", v: `${(shot.launchAngle ?? 0).toFixed(1)}°` },
+    { k: "Launch", v: `${(shot.launchAngle ?? 0).toFixed(1)}°` },
     { k: "Apex", v: `${shot.apex.toFixed(0)} m` },
     { k: "Backspin", v: `${(shot.backSpin ?? 0).toFixed(0)} rpm` },
-    { k: "Écart", v: lr(shot.offlineM) },
+    { k: "Offline", v: lr(shot.offlineM) },
   ];
   return (
     <section className="card overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/5">
-        <h3 className="text-[11px] uppercase tracking-wide text-ink/40">Dernier coup · #{n}</h3>
+        <h3 className="text-[11px] uppercase tracking-wide text-ink/40">Last shot · #{n}</h3>
         <span className="metric text-[11px] font-semibold rounded-full px-2 py-0.5 bg-royal/10 text-royal">{shot.club}</span>
       </div>
       <div className="grid grid-cols-3 gap-px bg-black/[0.04]">
@@ -1115,7 +1115,7 @@ function HoleMap({ H, ball, trail, aim, aiming, aimDist, onAim, teeFactor = 1, t
             <path d={`M ${wux * 11} ${wuy * 11} L ${wux * 11 - wux * 6 - wuy * 4} ${wuy * 11 - wuy * 6 + wux * 4} L ${wux * 11 - wux * 6 + wuy * 4} ${wuy * 11 - wuy * 6 - wux * 4} Z`} fill="#2F8FA6" />
           </>
         ) : (
-          <text textAnchor="middle" y={3} fontSize={8} fontFamily="Manrope" fill="#16294D">calme</text>
+          <text textAnchor="middle" y={3} fontSize={8} fontFamily="Manrope" fill="#16294D">calm</text>
         )}
         <text textAnchor="middle" y={31} fontSize={9} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.6}>
           {windSpeed.toFixed(0)} m/s
@@ -1146,7 +1146,7 @@ function Scorecard({ course, card, currentIdx, scoreMode = "stroke" }: { course:
       <table className="w-full text-xs metric">
         <tbody>
           <tr className="text-ink/40">
-            <td className="px-2 py-1 text-left font-sans uppercase tracking-wide text-[10px]">Trou</td>
+            <td className="px-2 py-1 text-left font-sans uppercase tracking-wide text-[10px]">Hole</td>
             {holes.map((h) => (
               <td key={h.number} className={"px-2 py-1 text-center " + (h.number - 1 === currentIdx ? "bg-fairway/10 rounded font-bold text-fairway" : "")}>{h.number}</td>
             ))}
@@ -1158,7 +1158,7 @@ function Scorecard({ course, card, currentIdx, scoreMode = "stroke" }: { course:
             <td className="px-2 py-1 text-center">{holes.reduce((a, h) => a + h.par, 0)}</td>
           </tr>
           <tr className="font-semibold">
-            <td className="px-2 py-1 text-left font-sans text-[10px] text-ink/50">Coups</td>
+            <td className="px-2 py-1 text-left font-sans text-[10px] text-ink/50">Strokes</td>
             {holes.map((h) => {
               const s = byHole.get(h.number);
               const d = s ? s.strokes - h.par : 0;
@@ -1191,7 +1191,7 @@ function Scorecard({ course, card, currentIdx, scoreMode = "stroke" }: { course:
   return (
     <section className="card p-4 grid gap-2">
       <div className="flex items-center justify-between">
-        <h3 className="font-display text-base">Carte de score</h3>
+        <h3 className="font-display text-base">Scorecard</h3>
         {card.length > 0 && (
           <span className="metric text-sm">
             {scoreMode !== "stroke" && <span className="text-royal font-semibold mr-2">{modeScoreLabel(card, scoreMode)}</span>}
@@ -1200,8 +1200,8 @@ function Scorecard({ course, card, currentIdx, scoreMode = "stroke" }: { course:
           </span>
         )}
       </div>
-      <Row holes={nine(0, 9)} label={hasBackNine ? "Aller" : "Total"} />
-      {hasBackNine && <Row holes={nine(9, course.length)} label="Retour" />}
+      <Row holes={nine(0, 9)} label={hasBackNine ? "Out" : "Total"} />
+      {hasBackNine && <Row holes={nine(9, course.length)} label="In" />}
     </section>
   );
 }
@@ -1210,19 +1210,19 @@ function PastRounds({ rounds, onDelete }: { rounds: Round[]; onDelete: (id: stri
   if (!rounds.length) return null;
   return (
     <section className="card overflow-hidden">
-      <h3 className="font-display text-base px-4 py-3 border-b border-black/5">Historique des parties</h3>
+      <h3 className="font-display text-base px-4 py-3 border-b border-black/5">Past rounds</h3>
       <div className="divide-y divide-black/[0.04]">
         {rounds.map((r) => {
           const diff = r.totalStrokes - r.coursePar;
           return (
             <div key={r.id} className="flex items-center gap-3 px-4 py-2.5 text-sm">
               <span className="text-ink/50">
-                {new Date(r.startedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                {new Date(r.startedAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })}
               </span>
               <span className="metric font-semibold ml-auto">{r.totalStrokes}</span>
               <span className="metric text-ink/50 w-12 text-right">{diff >= 0 ? "+" : ""}{diff}</span>
               <span className="text-xs text-gold w-16 text-right">{r.totalMulligans} mull.</span>
-              <button onClick={() => onDelete(r.id)} className="p-1.5 rounded-lg text-ink/25 hover:text-terracotta hover:bg-terracotta/10 transition" title="Supprimer">
+              <button onClick={() => onDelete(r.id)} className="p-1.5 rounded-lg text-ink/25 hover:text-terracotta hover:bg-terracotta/10 transition" title="Delete">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -1238,18 +1238,18 @@ function RoundStats({ rounds }: { rounds: Round[] }) {
   if (!s) return null;
   const trend = [...rounds].reverse().map((r, i) => ({ i: i + 1, vsPar: r.totalStrokes - r.coursePar }));
   const tiles = [
-    { label: "Parties", value: `${s.rounds}` },
-    { label: "Handicap est.", value: s.handicap == null ? "–" : `${s.handicap >= 0 ? "+" : ""}${s.handicap.toFixed(1)}` },
-    { label: "Score moyen", value: s.avgStrokes.toFixed(1) },
-    { label: "Meilleur", value: `${s.bestStrokes}` },
+    { label: "Rounds", value: `${s.rounds}` },
+    { label: "Est. handicap", value: s.handicap == null ? "–" : `${s.handicap >= 0 ? "+" : ""}${s.handicap.toFixed(1)}` },
+    { label: "Average score", value: s.avgStrokes.toFixed(1) },
+    { label: "Best", value: `${s.bestStrokes}` },
     { label: "GIR", value: `${s.girPct.toFixed(0)} %` },
     { label: "Fairways", value: `${s.firPct.toFixed(0)} %` },
-    { label: "Putts/partie", value: s.avgPutts.toFixed(1) },
-    { label: "Pénalités/p.", value: s.avgPenalties.toFixed(1) },
+    { label: "Putts/round", value: s.avgPutts.toFixed(1) },
+    { label: "Penalties/r.", value: s.avgPenalties.toFixed(1) },
   ];
   return (
     <section className="card p-4 grid gap-3">
-      <h3 className="font-display text-base flex items-center gap-2"><BarChart3 className="w-4 h-4 text-teal" /> Statistiques de parcours</h3>
+      <h3 className="font-display text-base flex items-center gap-2"><BarChart3 className="w-4 h-4 text-teal" /> Course statistics</h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {tiles.map((t) => (
           <div key={t.label} className="bg-panel rounded-xl px-3 py-2">
@@ -1266,7 +1266,7 @@ function RoundStats({ rounds }: { rounds: Round[] }) {
               <YAxis tick={{ fontFamily: "JetBrains Mono", fontSize: 11 }} />
               <ReferenceLine y={0} stroke="#16294D" strokeDasharray="4 4" strokeOpacity={0.4} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #eef3fb", fontFamily: "Manrope" }}
-                formatter={(v: number) => [`${v >= 0 ? "+" : ""}${v}`, "vs par"]} labelFormatter={(l) => `Partie ${l}`} />
+                formatter={(v: number) => [`${v >= 0 ? "+" : ""}${v}`, "vs par"]} labelFormatter={(l) => `Round ${l}`} />
               <Line type="monotone" dataKey="vsPar" stroke="#2F8F5B" strokeWidth={2.5} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -1384,7 +1384,7 @@ function RoundSummaryGrid({ course, card, holeTrails }: { course: Hole[]; card: 
   if (!card.length) return null;
   return (
     <section className="card p-4">
-      <h3 className="font-display text-base mb-3">Déroulé du parcours</h3>
+      <h3 className="font-display text-base mb-3">Round sequence</h3>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {card.map((h, i) => {
           const hole = course[h.number - 1];
@@ -1409,7 +1409,7 @@ function RoundSummaryGrid({ course, card, holeTrails }: { course: Hole[]; card: 
 function CourseOverview({ course }: { course: Hole[] }) {
   return (
     <section className="card p-4">
-      <h3 className="font-display text-base mb-3">Aperçu du parcours · {course.length} trous</h3>
+      <h3 className="font-display text-base mb-3">Course overview · {course.length} holes</h3>
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {course.map((h) => (
           <div key={h.number} className="grid gap-1">

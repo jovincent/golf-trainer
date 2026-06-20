@@ -1,16 +1,12 @@
 // Ball-flight model: the R10 reports ball speed / launch / spin but NOT carry,
 // so we integrate the trajectory (m·dv/dt = mg + F_D + F_L).
 //
-// Three selectable models (global setting):
-//   "calibrated" — Euler + induced drag + per-club trim + GLOBAL=0.90, tuned
-//                  to the user's real distances.
-//   "physics"    — textbook launch-monitor model: RK4, Cd≈0.225, Cl=f(S),
-//                  no empirical fudge (R&A / wind-tunnel constants).
-//   "truth"      — same Euler engine but GLOBAL=0.926, calibrated on 4 real
-//                  Garmin R10 hybrid shots (outdoor measured carry).
-//                  RMSE vs Garmin: 1.95 m  (vs 2.51 m for "calibrated").
-//                  TRIM_T[Hy]=1.0 (absorbed into GLOBAL_T); other clubs
-//                  scaled proportionally so relative gapping is preserved.
+// Two selectable models (global setting), surfaced to users as:
+//   "truth"   → "Réaliste"  — Euler engine, GLOBAL=0.926 + per-club trim,
+//               calibrated against real Garmin R10 measured carries. The
+//               everyday model: distances match what you'd see on a range.
+//   "physics" → "Théorique" — textbook launch-monitor model (RK4, Cd≈0.225,
+//               Cl=f(S)), pure wind-tunnel constants, no empirical calibration.
 
 import type { Club, Shot } from "../types";
 
@@ -24,14 +20,12 @@ export interface Flight {
 }
 
 // ---- global model selector ----
-export type FlightModel = "calibrated" | "physics" | "regression" | "truth";
+export type FlightModel = "physics" | "truth";
 const MODEL_KEY = "fairway-lab/flight-model";
 let model: FlightModel = (() => {
   try {
-    const v = localStorage.getItem(MODEL_KEY);
-    if (v === "physics" || v === "regression" || v === "truth") return v;
-    return "calibrated";
-  } catch { return "calibrated"; }
+    return localStorage.getItem(MODEL_KEY) === "physics" ? "physics" : "truth";
+  } catch { return "truth"; }
 })();
 export const getFlightModel = () => model;
 export function setFlightModel(m: FlightModel) {
@@ -39,20 +33,9 @@ export function setFlightModel(m: FlightModel) {
   try { localStorage.setItem(MODEL_KEY, m); } catch { /* ignore */ }
 }
 
-// Per-club calibration trim (calibrated model only).
-// Recalibrated 2026-06-15 against 44 Garmin-measured shots (Jonathan): short irons
-// 6i–9i 0.92→0.93 (slight under-prediction). Hy kept at 1.02 (the 0.98 retune was
-// reverted at the user's request — preferred the original). Driver spot-on (1.0).
-const TRIM: Record<Club, number> = {
-  Dr: 1.0, "3W": 1.05, "5W": 1.05, Hy: 1.02,
-  "3i": 0.96, "4i": 0.95, "5i": 0.93, "6i": 0.93, "7i": 0.93,
-  "8i": 0.93, "9i": 0.93, PW: 0.93, GW: 0.93, SW: 0.93, LW: 0.93,
-};
-
-// TRUTH model — GLOBAL_T = 0.926 (fitted to 4 Garmin R10 hybrid shots).
-// TRIM_T: Hy=1.0 (absorbed into GLOBAL_T); all other clubs scaled by
-// (GLOBAL / GLOBAL_T) so their net factor = 0.9 × TRIM[club], unchanged.
-// This means relative gapping is exactly preserved vs "calibrated".
+// "Réaliste" (truth) per-club trim. GLOBAL_T = 0.926 fitted to real Garmin R10
+// measured carries; TRIM_T[Hy]=1.0 (absorbed into GLOBAL_T), other clubs scaled
+// by (0.9 / GLOBAL_T) so the relative club gapping is preserved.
 const GLOBAL_T = 0.926;
 const _ratio = 0.9 / GLOBAL_T; // ≈ 0.972
 const TRIM_T: Record<Club, number> = {
@@ -82,10 +65,10 @@ function finish(carry: number, carryX: number, apex: number, vx: number, vy: num
   return { carry, total, apex, offlineM: carryX * (total / Math.max(1, carry)), carryDeviation: carryX };
 }
 
-// ---- Model A: calibrated (Euler, induced drag, global trim) ----
-const CD0 = 0.10, KI = 2.0, KCL = 2.4, CLMAX = 0.26, GLOBAL = 0.9;
+// ---- "Réaliste" (truth) — Euler integrator, induced drag, global trim ----
+const CD0 = 0.10, KI = 2.0, KCL = 2.4, CLMAX = 0.26;
 
-function calibratedBase(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number, gl: number): Flight {
+function eulerBase(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number, gl: number): Flight {
   const { vel, W, Wmag } = launchState(ballKmh, laDeg, ldDeg, back, side);
   const KL = (0.5 * RHO * A) / M;
   let { x, y, z } = { x: 0, y: 0, z: 0 };
@@ -112,16 +95,11 @@ function calibratedBase(ballKmh: number, laDeg: number, ldDeg: number, back: num
   return { carry: f.carry * gl, total: f.total * gl, apex: f.apex * gl, offlineM: f.offlineM * gl, carryDeviation: f.carryDeviation * gl };
 }
 
-function calibrated(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number): Flight {
-  return calibratedBase(ballKmh, laDeg, ldDeg, back, side, GLOBAL);
-}
-
-// ---- Model D: TRUTH (Euler, GLOBAL_T=0.926 fitted to 4 Garmin R10 hybrid shots) ----
 function truth(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number): Flight {
-  return calibratedBase(ballKmh, laDeg, ldDeg, back, side, GLOBAL_T);
+  return eulerBase(ballKmh, laDeg, ldDeg, back, side, GLOBAL_T);
 }
 
-// ---- Model B: physics (RK4, Cd≈0.225, Cl=f(S)) ----
+// ---- "Théorique" (physics) — RK4, Cd≈0.225, Cl=f(S), no empirical calibration ----
 const CD_PHYS = 0.225;
 const clOf = (S: number) => Math.min(0.32, 1.5 * S); // grows with spin ratio (0.15–0.30)
 
@@ -162,38 +140,20 @@ function physics(ballKmh: number, laDeg: number, ldDeg: number, back: number, si
   return finish(Math.max(0, s[1]), s[0], apex, s[3], s[4], s[5]);
 }
 
-const MPH_PER_KMH = 1 / 1.60934;
-
-// ---- Model C: regression — carry_m = b0+b1·BS+b2·LA+b3·K+b4·LA²+b5·K²+b6·LA·K ----
-// BS mph, LA deg, K = total spin / 1000. Least-squares fit to the calibrated
-// model (≈1.6 m MAE). Best non-physics approximation.
-const REG = [-70.07867, 1.8688, 1.73987, -3.19243, 0.04346, 0.87858, -0.44238];
-function regression(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number): Flight {
-  const bs = ballKmh * MPH_PER_KMH, la = laDeg, K = Math.hypot(back, side) / 1000;
-  const carry = Math.max(0,
-    REG[0] + REG[1] * bs + REG[2] * la + REG[3] * K + REG[4] * la * la + REG[5] * K * K + REG[6] * la * K);
-  const offline = carry * Math.sin(rad(ldDeg)) + side * 0.003;
-  return { carry, total: carry, apex: carry * 0.14, offlineM: offline, carryDeviation: offline };
-}
-
 export function ballFlight(ballKmh: number, laDeg: number, ldDeg: number, back: number, side: number): Flight {
-  if (model === "physics")    return physics(ballKmh, laDeg, ldDeg, back, side);
-  if (model === "regression") return regression(ballKmh, laDeg, ldDeg, back, side);
-  if (model === "truth")      return truth(ballKmh, laDeg, ldDeg, back, side);
-  return calibrated(ballKmh, laDeg, ldDeg, back, side);
+  if (model === "physics") return physics(ballKmh, laDeg, ldDeg, back, side);
+  return truth(ballKmh, laDeg, ldDeg, back, side);
 }
 
 /**
  * Recompute a real shot's distances from its raw R10 metrics with the active
- * model. Per-club trim is applied only by the calibrated model. Simulator shots
- * keep their own values. Idempotent (always derives from raw metrics).
+ * model. The per-club trim is applied only by the "Réaliste" (truth) model.
+ * Simulator shots keep their own values. Idempotent (always derives from raw).
  */
 export function applyFlight(s: Shot): Shot {
   if (s.sim) return s;
   const f = ballFlight(s.ballSpeed, s.launchAngle, s.launchDir, s.backSpin, s.sideSpin);
-  let k = 1;
-  if (model === "calibrated") k = TRIM[s.club] ?? 1;
-  if (model === "truth")      k = TRIM_T[s.club] ?? 1;
+  const k = model === "truth" ? (TRIM_T[s.club] ?? 1) : 1;
   return {
     ...s,
     carry: f.carry * k, total: f.total * k, apex: f.apex * k,

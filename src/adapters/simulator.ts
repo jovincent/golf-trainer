@@ -120,7 +120,7 @@ export function simulateShot(club: Club, skill = 0.5, pro = false): Omit<Shot, "
  */
 export class SimulatorAdapter extends AdapterEmitter implements LaunchMonitorAdapter {
   readonly id = "simulator";
-  readonly displayName = "Simulateur";
+  readonly displayName = "Simulator";
   private club: Club = "7i";
   private timer?: number;
 
@@ -136,7 +136,7 @@ export class SimulatorAdapter extends AdapterEmitter implements LaunchMonitorAda
   async connect() {
     this.setState({ status: "connecting" });
     await new Promise((r) => setTimeout(r, 350));
-    this.setState({ status: "connected", deviceName: "Simulateur de practice" });
+    this.setState({ status: "connected", deviceName: "Practice simulator" });
   }
 
   async disconnect() {

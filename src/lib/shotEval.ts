@@ -69,7 +69,7 @@ export interface ShotEval {
   bad: string[];
 }
 
-const lr = (v: number) => (v >= 0 ? "droite" : "gauche");
+const lr = (v: number) => (v >= 0 ? "right" : "left");
 
 export function evaluateShot(shot: Shot): ShotEval {
   const r = rangesFor(shot.club);
@@ -79,47 +79,47 @@ export function evaluateShot(shot: Shot): ShotEval {
 
   // Smash (contact quality) — only low is a problem.
   ratings.smash = smashRate(shot.smashFactor, r.smash);
-  if (ratings.smash === "good") good.push(`Contact pur (smash ${shot.smashFactor.toFixed(2)})`);
-  else if (ratings.smash === "bad") bad.push(`Contact décentré — smash ${shot.smashFactor.toFixed(2)} faible (vise le cœur de la face)`);
+  if (ratings.smash === "good") good.push(`Pure contact (smash ${shot.smashFactor.toFixed(2)})`);
+  else if (ratings.smash === "bad") bad.push(`Off-center contact — low smash ${shot.smashFactor.toFixed(2)} (aim for the center of the face)`);
 
   // Launch angle.
   ratings.launch = band(shot.launchAngle, r.launch);
-  if (ratings.launch === "good") good.push(`Angle de lancement idéal (${shot.launchAngle.toFixed(0)}°)`);
+  if (ratings.launch === "good") good.push(`Ideal launch angle (${shot.launchAngle.toFixed(0)}°)`);
   else if (ratings.launch === "bad")
     bad.push(shot.launchAngle < r.launch[0]
-      ? `Lancement trop bas (${shot.launchAngle.toFixed(0)}°)`
-      : `Lancement trop haut (${shot.launchAngle.toFixed(0)}°)`);
+      ? `Launch too low (${shot.launchAngle.toFixed(0)}°)`
+      : `Launch too high (${shot.launchAngle.toFixed(0)}°)`);
 
   // Backspin.
   ratings.spin = band(shot.backSpin, r.spin);
-  if (ratings.spin === "good") good.push(`Backspin idéal (${shot.backSpin.toFixed(0)} rpm)`);
+  if (ratings.spin === "good") good.push(`Ideal backspin (${shot.backSpin.toFixed(0)} rpm)`);
   else if (ratings.spin === "bad")
     bad.push(shot.backSpin < r.spin[0]
-      ? `Backspin faible (${shot.backSpin.toFixed(0)} rpm) — manque de portance`
-      : `Backspin élevé (${shot.backSpin.toFixed(0)} rpm) — perte de distance`);
+      ? `Low backspin (${shot.backSpin.toFixed(0)} rpm) — lack of lift`
+      : `High backspin (${shot.backSpin.toFixed(0)} rpm) — distance loss`);
 
   // Attack angle.
   ratings.attack = band(shot.attackAngle, r.attack);
-  if (ratings.attack === "good") good.push(`Bon angle d'attaque (${shot.attackAngle >= 0 ? "+" : ""}${shot.attackAngle.toFixed(1)}°)`);
+  if (ratings.attack === "good") good.push(`Good angle of attack (${shot.attackAngle >= 0 ? "+" : ""}${shot.attackAngle.toFixed(1)}°)`);
   else if (ratings.attack === "bad")
     bad.push(shot.attackAngle < r.attack[2]
-      ? `Attaque trop descendante (${shot.attackAngle.toFixed(1)}°)`
+      ? `Attack too steep/descending (${shot.attackAngle.toFixed(1)}°)`
       : (shot.club === "Dr"
-        ? `Attaque descendante au driver (${shot.attackAngle.toFixed(1)}°) — cherche à taper en montant`
-        : `Attaque trop montante (${shot.attackAngle.toFixed(1)}°) — compresse la balle`));
+        ? `Downward strike with driver (${shot.attackAngle.toFixed(1)}°) — try to hit up on it`
+        : `Attack too upward (${shot.attackAngle.toFixed(1)}°) — compress the ball`));
 
   // Face to path — drives the curve.
   ratings.faceToPath = absBand(shot.faceToPath, 2, 4);
-  if (ratings.faceToPath === "good") good.push("Face quasi alignée au chemin (balle droite)");
+  if (ratings.faceToPath === "good") good.push("Face nearly aligned with path (straight ball)");
   else if (ratings.faceToPath === "bad")
-    bad.push(`Face ${shot.faceToPath >= 0 ? "ouverte" : "fermée"} de ${Math.abs(shot.faceToPath).toFixed(1)}° → courbe à ${lr(shot.faceToPath)}`);
+    bad.push(`Face ${shot.faceToPath >= 0 ? "open" : "closed"} by ${Math.abs(shot.faceToPath).toFixed(1)}° → curves ${lr(shot.faceToPath)}`);
 
   // Club path.
   ratings.clubPath = absBand(shot.clubPath, 3, 6);
   if (ratings.clubPath === "bad")
     bad.push(shot.clubPath >= 0
-      ? `Chemin très intérieur-extérieur (+${shot.clubPath.toFixed(1)}°)`
-      : `Chemin très extérieur-intérieur (${shot.clubPath.toFixed(1)}°) — tendance slice`);
+      ? `Very in-to-out path (+${shot.clubPath.toFixed(1)}°)`
+      : `Very out-to-in path (${shot.clubPath.toFixed(1)}°) — slice tendency`);
 
   return { ratings, good, bad };
 }

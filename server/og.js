@@ -35,53 +35,53 @@ function model(kind, data) {
     const vs = d.vsPar === 0 ? "PAR" : d.vsPar > 0 ? `+${d.vsPar}` : `${d.vsPar}`;
     const vsColor = d.vsPar < 0 ? C.teal : d.vsPar > 0 ? C.terra : C.white;
     return {
-      eyebrow: "Carte de score", context: trunc(d.course, 24),
-      heroLabel: "Score total", hero: `${d.strokes}`, heroUnit: vs, heroUnitColor: vsColor,
-      heroSub: `Par ${d.par} · ${d.holes?.length ?? 18} trous`,
+      eyebrow: "Scorecard", context: trunc(d.course, 24),
+      heroLabel: "Total score", hero: `${d.strokes}`, heroUnit: vs, heroUnitColor: vsColor,
+      heroSub: `Par ${d.par} · ${d.holes?.length ?? 18} holes`,
       chips: [
         d.girPct != null ? ["Greens", `${r0(d.girPct)}%`] : null,
         d.firPct != null ? ["Fairways", `${r0(d.firPct)}%`] : null,
-        d.avgPutts != null ? ["Putts/trou", f1(d.avgPutts)] : ["Birdies", `${d.counts?.birdies ?? 0}`],
+        d.avgPutts != null ? ["Putts/hole", f1(d.avgPutts)] : ["Birdies", `${d.counts?.birdies ?? 0}`],
       ].filter(Boolean),
     };
   }
   if (kind === "session") {
     const d = data;
     return {
-      eyebrow: "Séance d'entraînement", context: trunc(d.label, 24),
-      heroLabel: "Coup le plus long", hero: d.longest ? `${r0(d.longest.carry)}` : "—", heroUnit: "m",
+      eyebrow: "Practice session", context: trunc(d.label, 24),
+      heroLabel: "Longest shot", hero: d.longest ? `${r0(d.longest.carry)}` : "—", heroUnit: "m",
       heroSub: d.longest ? `${d.longest.club} · ${r0(d.longest.total)} m total` : "",
       chips: [
-        ["Balles", `${d.balls}`],
-        d.bestSmash ? ["Smash max", f2(d.bestSmash.smash)] : null,
-        d.topBallSpeed ? ["V. balle max", `${r0(d.topBallSpeed.speed)}`] : null,
+        ["Balls", `${d.balls}`],
+        d.bestSmash ? ["Max smash", f2(d.bestSmash.smash)] : null,
+        d.topBallSpeed ? ["Max ball spd", `${r0(d.topBallSpeed.speed)}`] : null,
       ].filter(Boolean),
     };
   }
   if (kind === "combine") {
     const d = data;
     return {
-      eyebrow: "Combine FlightLab", context: "Test standardisé",
-      heroLabel: "Score Combine", hero: f1(d.score), heroUnit: "/100",
-      heroSub: `Niveau ${d.grade}`,
+      eyebrow: "Combine FlightLab", context: "Standardized test",
+      heroLabel: "Combine score", hero: f1(d.score), heroUnit: "/100",
+      heroSub: `Level ${d.grade}`,
       chips: [
-        ["Balles", `${d.balls}`],
+        ["Balls", `${d.balls}`],
         ["Stations", `${d.stations?.length ?? 0}`],
-        d.best ? ["Meilleure", d.best.label] : null,
+        d.best ? ["Best", d.best.label] : null,
       ].filter(Boolean),
     };
   }
   // stats
   const d = data;
   return {
-    eyebrow: "Statistiques", context: "Profil de jeu complet",
-    heroLabel: d.topClub ? `Club le plus long · ${d.topClub.club}` : "Mon sac",
+    eyebrow: "Stats", context: "Full game profile",
+    heroLabel: d.topClub ? `Longest club · ${d.topClub.club}` : "My bag",
     hero: d.topClub ? `${r0(d.topClub.carry)}` : "—", heroUnit: "m",
-    heroSub: d.topClub ? `carry moyen · smash ${f2(d.topClub.smash)}` : "",
+    heroSub: d.topClub ? `avg carry · smash ${f2(d.topClub.smash)}` : "",
     chips: [
-      ["Balles", `${d.balls}`],
+      ["Balls", `${d.balls}`],
       ["Clubs", `${d.clubs}`],
-      ["Smash moy", f2(d.avgSmash)],
+      ["Avg smash", f2(d.avgSmash)],
     ],
   };
 }
@@ -99,7 +99,7 @@ function cardSvg(share) {
   const accent = ACCENT[share.kind] ?? C.fw;
   const W = 1200, H = 630;
   const player = trunc(share.player, 28);
-  const date = new Date(share.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const date = new Date(share.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
 
   // Left column content x=80..700 ; right column hero centered around x=930.
   const chipW = 196, chipH = 92, chipGap = 16, chipY = 470;
@@ -142,8 +142,8 @@ function cardSvg(share) {
   <text x="${HERO_CX}" y="440" text-anchor="middle" font-family="Manrope" font-weight="600" font-size="30" fill="${C.muted}">${esc(m.heroSub)}</text>
 
   <!-- Footer -->
-  <text x="80" y="600" font-family="Manrope" font-weight="700" font-size="20" fill="${C.muted}">Généré avec FlightLab</text>
-  <text x="1120" y="600" text-anchor="end" font-family="Manrope" font-weight="500" font-size="18" fill="${C.muted}" fill-opacity="0.7">Analyse de swing &amp; entraînement golf connecté</text>
+  <text x="80" y="600" font-family="Manrope" font-weight="700" font-size="20" fill="${C.muted}">Generated with FlightLab</text>
+  <text x="1120" y="600" text-anchor="end" font-family="Manrope" font-weight="500" font-size="18" fill="${C.muted}" fill-opacity="0.7">Swing analysis &amp; connected golf training</text>
 </svg>`;
 }
 
@@ -171,32 +171,32 @@ export function renderOgPng(share) {
 export function shareMeta(share) {
   const { kind, data, player } = share;
   if (kind === "round") {
-    const vs = data.vsPar === 0 ? "au par" : data.vsPar > 0 ? `+${data.vsPar}` : `${data.vsPar}`;
+    const vs = data.vsPar === 0 ? "level par" : data.vsPar > 0 ? `+${data.vsPar}` : `${data.vsPar}`;
     return {
-      title: `${player} — ${data.strokes} (${vs}) à ${trunc(data.course, 40)}`,
-      description: `Carte de score FlightLab · Par ${data.par}` +
+      title: `${player} — ${data.strokes} (${vs}) at ${trunc(data.course, 40)}`,
+      description: `FlightLab scorecard · Par ${data.par}` +
         (data.girPct != null ? ` · GIR ${r0(data.girPct)}%` : "") +
         (data.firPct != null ? ` · Fairways ${r0(data.firPct)}%` : ""),
     };
   }
   if (kind === "session") {
     return {
-      title: `${player} — séance${data.longest ? ` : drive ${r0(data.longest.carry)} m` : ""}`,
-      description: `${data.balls} balles` +
-        (data.bestSmash ? ` · smash max ${f2(data.bestSmash.smash)}` : "") +
+      title: `${player} — session${data.longest ? ` : drive ${r0(data.longest.carry)} m` : ""}`,
+      description: `${data.balls} balls` +
+        (data.bestSmash ? ` · max smash ${f2(data.bestSmash.smash)}` : "") +
         (data.topBallSpeed ? ` · ${r0(data.topBallSpeed.speed)} km/h` : "") + " · FlightLab",
     };
   }
   if (kind === "combine") {
     return {
       title: `${player} — Combine ${f1(data.score)}/100 (${data.grade})`,
-      description: `Test standardisé FlightLab · ${data.balls} balles sur ${data.stations?.length ?? 0} cibles`,
+      description: `FlightLab standardized test · ${data.balls} balls across ${data.stations?.length ?? 0} targets`,
     };
   }
   return {
-    title: `${player} — statistiques FlightLab`,
-    description: `${data.balls} balles · ${data.clubs} clubs` +
+    title: `${player} — FlightLab stats`,
+    description: `${data.balls} balls · ${data.clubs} clubs` +
       (data.topClub ? ` · ${data.topClub.club} ${r0(data.topClub.carry)} m` : "") +
-      (data.avgSmash ? ` · smash moyen ${f2(data.avgSmash)}` : ""),
+      (data.avgSmash ? ` · avg smash ${f2(data.avgSmash)}` : ""),
   };
 }

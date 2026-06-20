@@ -1,39 +1,49 @@
-# FlightLab — Entraîneur Golf Garmin R10
+# FlightLab — Garmin R10 Golf Trainer
 
-Application web d'entraînement au golf construite autour du **Garmin Approach R10**.
-Capte les shots en Bluetooth, calcule les trajectoires avec des modèles balistiques,
-suit la progression et propose des drills guidés — le tout stocké localement,
-sans cloud, sans compte.
+A web golf-training app built around the **Garmin Approach R10**. It captures shots
+over Bluetooth, computes ball flight with ballistic models, tracks your progress and
+offers guided drills — all stored locally, no cloud, no account.
 
-> **Navigateur requis : Chrome ou Edge desktop** (ou Chrome Android).
-> La connexion Bluetooth repose sur l'API Web Bluetooth, absente de Safari/iOS/Firefox.
+> ### 🛠️ A fully vibe-coded app
+> This is a **fully vibe-coded** project — built end to end by chatting with an AI,
+> not by a studio or a polished product team. It's shared in the hope it helps
+> **fellow golfers take a different approach to their training**: visualize dispersion,
+> understand club gapping, run a standardized test, and actually *see* progress over time.
+>
+> Treat it as a **basic starting point** — a foundation to fork, tweak and build on for
+> your own practice, not a finished commercial product. If it sparks ideas for how you
+> train, it's done its job. No warranty, no support — just a useful base to start from. ⛳
+
+> **Browser required: desktop Chrome or Edge** (or Chrome on Android).
+> The Bluetooth connection relies on the Web Bluetooth API, which Safari/iOS/Firefox don't support.
+> Everything except the live R10 link works anywhere via the built-in **Simulator**.
 
 ---
 
-## Démarrage rapide
+## Quick start
 
 ```bash
 npm install
-npm run dev        # Lance l'API (port 4141) + le front Vite (port 4040)
+npm run dev        # Starts the API (port 4141) + the Vite front end (port 4040)
 ```
 
-Ouvre **http://localhost:4040** dans Chrome ou Edge.
+Open **http://localhost:4040** in Chrome or Edge.
 
-Sans radar, choisis la source **Simulateur**, clique **Connecter** et frappe des
-balles — tout fonctionne avec des données simulées réalistes.
+No launch monitor? Pick the **Simulator** source, click **Connect** and hit balls —
+everything works with realistic simulated data.
 
-### Commandes disponibles
+### Available commands
 
-| Commande | Rôle |
+| Command | Role |
 |---|---|
-| `npm run dev` | API + Vite en parallèle **(commande principale)** |
-| `npm run server` | API Express seule (port 4141) |
-| `npm run web` | Vite seul — ⚠️ **sans API, les profils ne chargent pas** |
-| `npm run build` | Build de production |
-| `npm run preview` | Aperçu du build |
+| `npm run dev` | API + Vite in parallel **(main command)** |
+| `npm run server` | Express API only (port 4141) |
+| `npm run web` | Vite only — ⚠️ **without the API, profiles won't load** |
+| `npm run build` | Production build |
+| `npm run preview` | Preview the build |
 
-> **Important :** toujours utiliser `npm run dev`. `npm run web` ne démarre pas
-> l'API Express — les profils joueurs n'apparaissent pas et rien n'est persisté.
+> **Important:** always use `npm run dev`. `npm run web` doesn't start the Express API —
+> player profiles won't appear and nothing is persisted.
 
 ---
 
@@ -44,212 +54,167 @@ Golf-Trainer/
 ├── src/
 │   ├── adapters/
 │   │   ├── garminR10.ts      # Bluetooth BLE — Garmin Approach R10
-│   │   └── simulator.ts      # Générateur de shots réalistes (sans matériel)
+│   │   └── simulator.ts      # Realistic shot generator (no hardware)
 │   ├── components/
-│   │   └── ConnectionBar.tsx # Barre connexion + sélecteur modèle de vol + son
-│   ├── hooks/
-│   │   └── useTheme.ts       # 5 thèmes CSS via data-theme sur <html>
+│   │   └── ConnectionBar.tsx # Connection bar + flight-model selector + sound
 │   ├── lib/
-│   │   ├── api.ts            # Client HTTP → API Express (profils + séances)
-│   │   ├── export.ts         # Export CSV
-│   │   ├── flight.ts         # 4 modèles de trajectoire balistique
-│   │   ├── sounds.ts         # Sons de feedback (succès, erreur)
-│   │   └── stats.ts          # Statistiques (mean, stdDev, percentile…)
+│   │   ├── api.ts            # HTTP client → Express API (profiles + sessions)
+│   │   ├── export.ts         # CSV export
+│   │   ├── flight.ts         # Ball-flight models (Realistic / Theoretical)
+│   │   ├── sounds.ts         # Feedback sounds (success, error)
+│   │   └── stats.ts          # Statistics (mean, stdDev, percentile…)
 │   ├── pages/
-│   │   ├── LiveSession.tsx   # Session en direct
-│   │   ├── Stats.tsx         # Statistiques & pattern de dispersion
-│   │   ├── Practice.tsx      # Drills guidés
-│   │   ├── History.tsx       # Historique des séances
-│   │   ├── Compare.tsx       # Comparaison inter-profils
-│   │   ├── Course.tsx        # Simulation de parcours (WIP)
-│   │   └── Junior.tsx        # Mode enfant simplifié ⭐
-│   ├── store.ts              # État global Zustand
-│   ├── types.ts              # Types TypeScript (Shot, Session, Club…)
-│   └── App.tsx               # Navigation + sélecteur de profil + thèmes
+│   │   ├── LiveSession.tsx   # Live session
+│   │   ├── Stats.tsx         # Stats & dispersion pattern
+│   │   ├── Practice.tsx      # Guided drills
+│   │   ├── Combine.tsx       # Standardized skill test (Combine)
+│   │   ├── History.tsx       # Session history (filter & sort by club / metric)
+│   │   ├── Compare.tsx       # Cross-profile comparison
+│   │   ├── Course.tsx        # Course simulation
+│   │   └── Junior.tsx        # Simplified kids mode ⭐
+│   ├── store.ts              # Global Zustand state
+│   ├── types.ts              # TypeScript types (Shot, Session, Club…)
+│   └── App.tsx               # Navigation + profile selector
 ├── server/
-│   ├── index.js              # API Express (port 4141)
-│   ├── db.js                 # Accès SQLite (WAL mode)
+│   ├── index.js              # Express API (port 4141) + Open Graph share images
+│   ├── og.js                 # Dynamic OG card (PNG) generator
+│   ├── db.js                 # SQLite access (WAL mode)
 │   └── data/
-│       └── fairway.db        # Base SQLite locale (ignorée par git)
+│       └── fairway.db        # Local SQLite database (git-ignored)
 └── .claude/
-    └── launch.json           # Config preview Claude Code (npm run dev)
+    └── launch.json           # Claude Code preview config (npm run dev)
 ```
 
 ---
 
 ## Stack
 
-| Couche | Technologie |
+| Layer | Technology |
 |---|---|
-| Front | React 18 · TypeScript 5 · Vite 5 |
-| Style | Tailwind CSS 3 · CSS custom properties · 5 thèmes |
-| État global | Zustand |
-| Graphiques | Recharts |
-| Icônes | lucide-react |
+| Front end | React 18 · TypeScript 5 · Vite 5 |
+| Style | Tailwind CSS 3 · CSS custom properties |
+| Global state | Zustand |
+| Charts | Recharts |
+| Icons | lucide-react |
 | Backend | Express 4 (Node.js ESM) |
-| Base de données | SQLite via `node:sqlite` natif (WAL mode) |
-| Bluetooth | Web Bluetooth API (Chrome/Edge uniquement) |
-| Dev tooling | concurrently · TypeScript strict |
+| Database | SQLite via native `node:sqlite` (WAL mode) |
+| Share images | `@resvg/resvg-js` (server-rendered OG PNGs) |
+| Bluetooth | Web Bluetooth API (Chrome/Edge only) |
 
 ---
 
-## Modèles de vol
+## Flight models
 
-Sélectionnables en temps réel via le menu déroulant dans la barre de connexion.
-Tous les shots existants sont recalculés à la volée lors d'un changement de modèle.
+Switchable in real time from the dropdown in the connection bar. Every existing shot is
+recomputed on the fly when you change the model. Two models, named to be self-explanatory:
 
-| Modèle | Algorithme | Calibration | RMSE vs Garmin |
-|---|---|---|---|
-| **TRUTH 🎯** | Euler + drag/lift/spin | GLOBAL=0.926, calibré sur 4 shots Hy réels | ≈ 1.95 m |
-| **Calibré** | Euler + drag/lift/spin | GLOBAL=0.9, TRIM par club | ≈ 2.51 m |
-| **Physique** | Runge-Kutta 4, aéro complète | Non calibré | Variable |
-| **Régression** | Polynôme empirique | Données synthétiques | Non mesuré |
+| Display | Internal | Algorithm | Calibration | RMSE vs Garmin |
+|---|---|---|---|---|
+| **Realistic 🎯** | `truth` | Euler + drag/lift/spin | GLOBAL=0.926 + per-club trim, tuned on real measured Garmin R10 carries | ≈ 1.95 m |
+| **Theoretical** | `physics` | Runge-Kutta 4, full aero | None (pure physics constants) | Variable |
 
-Le modèle **TRUTH** est recommandé. Il a été optimisé par recherche sur grille
-(grid search GLOBAL ∈ [0.88, 0.96]) pour minimiser l'erreur quadratique moyenne
-sur des données terrain Garmin R10 (hybride). Le facteur TRIM par club est mis
-à l'échelle `× (0.9 / 0.926)` pour conserver l'échelonnement relatif des clubs,
-sauf le Hy (TRIM=1.0 absorbé dans le GLOBAL).
+**Realistic** is the default: its distances match what you'd see on a range. The per-club
+trim is scaled `× (0.9 / 0.926)` to preserve relative club gapping (Hy=1.0, absorbed into
+GLOBAL). **Theoretical** applies pure physics with no empirical tuning — useful as a
+reference, but less faithful to real-world carries.
 
 ---
 
-## Persistance — SQLite locale
+## Local persistence — SQLite
 
-Toutes les données sont stockées dans `server/data/fairway.db`, créée
-automatiquement au premier lancement. **Aucune donnée ne quitte la machine.**
+All data is stored in `server/data/fairway.db`, created automatically on first launch.
+**No data leaves the machine.** Shots are written **ball by ball** (not at session end), so
+nothing is lost if you close the browser mid-session.
 
-Les shots sont écrits **balle par balle** (pas en fin de séance) — rien n'est
-perdu en cas de fermeture du navigateur en cours de frappe.
-
-### API REST (port 4141)
+### REST API (port 4141)
 
 ```
-# Profils joueurs
-GET    /api/profiles                        liste des profils
-POST   /api/profiles                        créer un profil  { name }
-PUT    /api/profiles/:id                    renommer         { name }
-DELETE /api/profiles/:id                    supprimer
+# Player profiles
+GET    /api/profiles                 list profiles
+POST   /api/profiles                 create a profile  { name }
+PATCH  /api/profiles/:id             rename            { name }
+DELETE /api/profiles/:id             delete
 
-# Séances & shots
-GET    /api/sessions?profileId=...          séances du profil
-POST   /api/sessions                        créer une séance { profileId, label, club }
-POST   /api/sessions/bulk                   import multiple
-POST   /api/sessions/:id/shots             ajouter un shot
-PATCH  /api/sessions/:id                    mettre à jour (label, clubs…)
-DELETE /api/sessions/:id                    supprimer une séance
-DELETE /api/sessions?profileId=...          vider l'historique du profil
+# Sessions & shots
+GET    /api/sessions?profileId=...   profile sessions
+POST   /api/sessions                 create a session
+POST   /api/sessions/bulk            bulk import
+POST   /api/sessions/:id/shots       append a shot
+PATCH  /api/sessions/:id             update (endedAt…)
+DELETE /api/sessions/:id             delete a session
+
+# Combines, rounds & public shares (Open Graph images)
+GET/POST/DELETE /api/combines        standardized-test results
+GET/POST/DELETE /api/rounds          course scorecards
+POST   /api/shares                   create a public share snapshot
+GET    /api/shares/:token            read a share
+GET    /api/shares/:token/og.png     dynamic 1200×630 share image
+GET    /s/:token                     public share page (crawler-friendly OG meta)
 ```
 
 ---
 
-## Fonctionnalités par onglet
+## Features by tab
 
-### Session (en direct)
-Métriques shot par shot : carry, vitesse balle/club, smash factor, spin, apex,
-écart ligne. Tableau cumulatif des balles. Sauvegarde automatique.
+- **Session** — shot-by-shot metrics: carry, ball/club speed, smash factor, spin, apex,
+  offline. Cumulative shot table. Auto-saved ball by ball.
+- **Course** — play simulated rounds on iconic and regional courses, with scoring, a hole
+  map, and a saved scorecard you can share.
+- **Practice** — targeted drills (accuracy corridor + distance control) scored live,
+  plus a closest-to-pin challenge.
+- **Combine** — a standardized 30-ball skill test (9 fixed distances + driver), each ball
+  scored 0–100, comparable between players and across time.
+- **Stats** — dispersion pattern, per-club gapping, consistency (carry & lateral σ),
+  bullseye, with CSV and share-card export.
+- **History** — every session for the active profile. Filter by club and sort by date,
+  carry, ball/club speed or smash — filtering flattens to a single ranked shot list.
+- **Compare** — cross-profile comparison with radar (spider) charts per metric.
+- **Junior ⭐** — a simplified, kid-friendly mode with star ratings and a session record.
 
-### Stats
-- **Pattern de dispersion** : nuage carry/écart, zones vertes ≤5%, orange 5-8%,
-  rouge >8% (en % du carry). Chaque point affiche une flèche orientée selon
-  l'axe de spin à la retombée (carry + 2 × atan(offline/carry)).
-- **Gapping** : carry moyen par club, détection des gaps trop larges ou serrés.
-- **Régularité** : écart-type carry et dispersion latérale par club.
-
-### Practice (Drills)
-Couloir de précision + régularité de distance, notés en direct. Objectifs
-configurables.
-
-### Historique
-Liste de toutes les séances du profil actif. Chaque séance est dépliable et
-affiche les shots avec :
-- Numéro + club
-- **Carry en grand** (métrique principale)
-- V. club · V. balle · Smash · Apex · Backspin · Angle de lancement
-- Badge d'écart latéral coloré (vert/orange/rouge) avec direction G/D
-- Survol : popover complet avec les 20 métriques du shot
-- Export CSV de tout l'historique
-
-### Comparer
-Comparaison des performances entre profils sur les mêmes clubs.
-
-### Junior ⭐
-Mode simplifié pour les enfants :
-- Notation 1-3 étoiles avec emoji et couleur selon la précision latérale
-- Barre de direction visuelle (zones colorées carry-relatives)
-- Record de session mis en avant avec badge 🏆
-- Historique de session en mini-cartes colorées
-- Bouton simulateur intégré quand la source est le simulateur
+Each round / session / Combine / stats view can be **shared** as a branded card via a
+public link with a rich Open Graph preview (renders nicely in WhatsApp / iMessage), or
+downloaded.
 
 ---
 
-## Profils joueurs
+## Player profiles
 
-Le sélecteur de profil (bouton avec icône utilisateur en haut à droite) permet
-de créer, renommer et supprimer des profils. Chaque profil a son propre
-historique de séances isolé.
+The profile selector (user icon, top right) creates, renames and deletes profiles. Each
+profile keeps its own isolated session history.
 
-**Profils fournis :** Jonathan, Jo, Boubou (432 shots), Annemarie (288 shots).
-
-> Si le sélecteur n'apparaît pas : l'API Express n'est pas démarrée.
-> Solution : `npm run dev` (pas `npm run web`).
+> If the selector doesn't appear, the Express API isn't running.
+> Fix: `npm run dev` (not `npm run web`).
 
 ---
 
-## Thèmes visuels
+## Garmin R10 adapter — BLE notes
 
-5 thèmes accessibles via le bouton palette (⬤ + 🎨) en haut à droite.
-Implémentés via CSS custom properties sur l'attribut `data-theme` du `<html>`.
-
-| ID | Nom | Ambiance |
-|---|---|---|
-| `fairway` | Fairway | Vert gazon classique (défaut) |
-| `dark-pro` | Dark Pro | Fond sombre, pro |
-| `augusta` | Augusta | Vert foncé premium |
-| `sports` | Sports | Bleu vif dynamique |
-| `field` | Terrain | Tons terre / olive |
+Garmin doesn't publish the R10 Bluetooth protocol. The parsing in
+`src/adapters/garminR10.ts` is based on reverse engineering and may need calibration on
+the physical device. The **R10 diagnostics** panel in the app shows all BLE messages in
+real time (service UUIDs, characteristics, raw data) — open it while connecting and hitting
+balls to inspect the stream.
 
 ---
 
-## Adaptateur Garmin R10 — calibration BLE
-
-Garmin ne publie pas le protocole Bluetooth du R10. Le parsing dans
-`src/adapters/garminR10.ts` est basé sur du reverse engineering et nécessite
-une calibration sur l'appareil physique.
-
-### Étapes pour calibrer
-
-1. Choisir la source **Garmin Approach R10**, cliquer **Connecter**, sélectionner le radar.
-2. Ouvrir la console du navigateur (F12).
-3. Frapper quelques balles — les octets bruts s'affichent dans le panneau **Diagnostic R10**.
-4. Identifier la caractéristique BLE qui notifie sur chaque coup.
-5. Adapter `handlePacket()` dans `garminR10.ts` pour parser le bon format binaire.
-
-Le panneau **Diagnostic R10** dans l'app affiche tous les messages BLE en temps réel
-(UUID services, caractéristiques, données brutes).
-
----
-
-## Développement
+## Development
 
 ```bash
-# Vérifier les types TypeScript
+# Type-check
 npx tsc --noEmit
 
-# Inspecter la base de données
+# Inspect the database
 sqlite3 server/data/fairway.db ".tables"
 sqlite3 server/data/fairway.db "SELECT name FROM profiles;"
-sqlite3 server/data/fairway.db "SELECT p.name, COUNT(s.id) shots FROM profiles p LEFT JOIN shots s ON s.profileId = p.id GROUP BY p.id;"
 
-# Logs de l'API (si lancée en arrière-plan)
-tail -f /tmp/golf-api.log
+# Import a Garmin "DrivingRange" CSV export into a profile (computes distances)
+node scripts/importGarmin.mjs            # dry-run
+node scripts/importGarmin.mjs --commit   # save
+
+# Validate the flight model against measured carries (if the export has them)
+node scripts/validateModel.mjs path/to/export.csv
 ```
 
-### Gotchas
-
-- `server/data/fairway.db` est dans `.gitignore` — les données ne sont pas versionnées.
-- Les erreurs TypeScript dans `Course.tsx` sont pré-existantes (bug de type dans
-  le calcul de distance), sans impact sur le reste de l'app.
-- La barre de connexion affiche le panneau **Diagnostic R10** uniquement quand
-  la source sélectionnée est **Garmin Approach R10**.
-- `recomputeAll()` dans le store recalcule toutes les trajectoires quand le
-  modèle de vol change — peut prendre quelques ms sur de gros historiques.
+> Ports are fixed: front end **4040**, API **4141** (`vite.config.ts`, `server/index.js`,
+> `.claude/launch.json`). `recomputeAll()` in the store re-derives every shot's distances
+> when the flight model changes.

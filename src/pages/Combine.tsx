@@ -91,7 +91,7 @@ export function Combine() {
   function abort() { setStations([]); setPhase("idle"); }
 
   async function removeCombine(id: string) {
-    if (!confirm("Supprimer ce Combine ?")) return;
+    if (!confirm("Delete this Combine?")) return;
     await api.deleteCombine(id).catch(() => {});
     setHistory((h) => h.filter((c) => c.id !== id));
   }
@@ -107,39 +107,39 @@ export function Combine() {
             <Gauge className="w-5 h-5 text-fairway" /> Combine FlightLab
           </h2>
           <p className="text-sm text-ink/60 leading-relaxed">
-            Test standardisé de <b>{TOTAL_BALLS} balles</b> : {BALLS_PER_STATION} balles sur chacune des{" "}
-            {STATIONS.length} cibles ({STATIONS.filter((s) => s !== "driver").map(String).join(", ")} m, puis driver).
-            Chaque balle est notée de 0 à 100 selon sa précision. Le score final est comparable
-            entre joueurs et d'un test à l'autre — refais-le chaque mois pour mesurer ta progression.
+            Standardized test of <b>{TOTAL_BALLS} balls</b> : {BALLS_PER_STATION} balls on each of the{" "}
+            {STATIONS.length} targets ({STATIONS.filter((s) => s !== "driver").map(String).join(", ")} m, then driver).
+            Each ball is scored 0 to 100 by accuracy. The final score is comparable between players
+            and across tests — repeat it monthly to track your progress.
           </p>
           <div className="grid grid-cols-2 gap-2 text-center">
             <div className="bg-panel rounded-xl px-3 py-2">
-              <div className="text-[10px] uppercase tracking-wide text-ink/45">Meilleur score</div>
+              <div className="text-[10px] uppercase tracking-wide text-ink/45">Best score</div>
               <div className="metric text-lg font-semibold text-fairway">{best != null ? best.toFixed(1) : "–"}</div>
             </div>
             <div className="bg-panel rounded-xl px-3 py-2">
-              <div className="text-[10px] uppercase tracking-wide text-ink/45">Tests passés</div>
+              <div className="text-[10px] uppercase tracking-wide text-ink/45">Tests taken</div>
               <div className="metric text-lg font-semibold">{history.length}</div>
             </div>
           </div>
           {!connected ? (
             <button onClick={() => connect()} className="w-full inline-flex items-center justify-center gap-2
               bg-fairway hover:bg-fairway-light text-white font-semibold rounded-xl px-5 py-3 transition">
-              <Radio className="w-4 h-4" /> Connecter pour démarrer
+              <Radio className="w-4 h-4" /> Connect to start
             </button>
           ) : (
             <button onClick={start} className="w-full inline-flex items-center justify-center gap-2
               bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition">
-              <Trophy className="w-4 h-4" /> Démarrer le Combine
+              <Trophy className="w-4 h-4" /> Start the Combine
             </button>
           )}
         </section>
 
         <section className="card p-5 grid gap-3">
-          <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Historique des Combines</h3>
+          <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Combine history</h3>
           {history.length === 0 ? (
             <p className="text-sm text-ink/40 py-6 text-center">
-              Aucun Combine pour l'instant. Lance ton premier test pour établir ta référence.
+              No Combine yet. Run your first test to set your baseline.
             </p>
           ) : (
             <div className="grid gap-2">
@@ -154,18 +154,18 @@ export function Combine() {
                         {g.label} {isBest && <span className="text-[10px] uppercase tracking-wide bg-gold/15 text-gold rounded px-1.5 py-0.5">record</span>}
                       </div>
                       <div className="text-xs text-ink/45">
-                        {new Date(c.startedAt).toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                        {new Date(c.startedAt).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                       </div>
                     </div>
                     {/* score bar */}
                     <div className="ml-auto hidden sm:block w-32 h-2 rounded-full bg-ink/10 overflow-hidden">
                       <div className="h-full rounded-full bg-fairway" style={{ width: `${Math.min(100, c.score)}%` }} />
                     </div>
-                    <button onClick={() => setShare(buildCombineShare(c, player))} aria-label="Partager ce Combine"
+                    <button onClick={() => setShare(buildCombineShare(c, player))} aria-label="Share this Combine"
                       className="ml-auto sm:ml-0 p-1.5 rounded text-ink/0 group-hover:text-ink/25 hover:!text-fairway hover:bg-fairway/10 transition">
                       <Share2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => removeCombine(c.id)} aria-label="Supprimer ce Combine"
+                    <button onClick={() => removeCombine(c.id)} aria-label="Delete this Combine"
                       className="p-1.5 rounded text-ink/0 group-hover:text-ink/25 hover:!text-terracotta hover:bg-terracotta/10 transition">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -188,35 +188,35 @@ export function Combine() {
       <div className="grid gap-3">
         <section className="card p-5 grid gap-3">
           <h2 className="font-display text-lg flex items-center gap-2">
-            <Gauge className="w-5 h-5 text-fairway" /> Combine · balle {Math.min(ballsDone + 1, TOTAL_BALLS)}/{TOTAL_BALLS}
+            <Gauge className="w-5 h-5 text-fairway" /> Combine · ball {Math.min(ballsDone + 1, TOTAL_BALLS)}/{TOTAL_BALLS}
           </h2>
 
           {phase === "running" ? (
             <div className="bg-fairway/10 rounded-xl px-4 py-3 grid gap-1">
-              <div className="text-[10px] uppercase tracking-wide text-fairway/70">Cible actuelle</div>
+              <div className="text-[10px] uppercase tracking-wide text-fairway/70">Current target</div>
               <div className="flex items-baseline gap-2">
                 <span className="metric text-3xl font-bold text-fairway">{stationLabel(target)}</span>
-                <span className="text-sm text-fairway/70">balle {ballInStation + 1}/{BALLS_PER_STATION}</span>
+                <span className="text-sm text-fairway/70">ball {ballInStation + 1}/{BALLS_PER_STATION}</span>
               </div>
-              <div className="text-xs text-ink/50">Clubs suggérés : {suggestedClubs(target)}</div>
+              <div className="text-xs text-ink/50">Suggested clubs : {suggestedClubs(target)}</div>
             </div>
           ) : (
             <div className="bg-gold/10 rounded-xl px-4 py-3 text-center grid gap-1">
-              <div className="text-[10px] uppercase tracking-wide text-gold/80">Combine terminé !</div>
+              <div className="text-[10px] uppercase tracking-wide text-gold/80">Combine complete!</div>
               <div className={"metric text-4xl font-bold " + g.color}>{score.toFixed(1)}</div>
-              <div className="text-sm font-semibold text-ink/70">Niveau {g.label}</div>
+              <div className="text-sm font-semibold text-ink/70">Level {g.label}</div>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <Tile label="Score moyen" value={ballsDone ? score.toFixed(1) : "–"} accent />
+            <Tile label="Avg score" value={ballsDone ? score.toFixed(1) : "–"} accent />
             <Tile label="Stations" value={`${Math.min(stationIdx + (phase === "done" ? 1 : 0), STATIONS.length)}/${STATIONS.length}`} />
           </div>
 
           {phase === "running" && connected && (
             <div className="grid gap-1.5">
               <span className="text-[11px] uppercase tracking-wide text-ink/45">
-                Club {clubArmed ? `· ${selectedClub}` : "— à choisir"}
+                Club {clubArmed ? `· ${selectedClub}` : "— to pick"}
               </span>
               <ClubSelector />
             </div>
@@ -227,14 +227,14 @@ export function Combine() {
               <button onClick={simHit} disabled={!clubArmed}
                 className="w-full inline-flex items-center justify-center gap-2 bg-ink hover:bg-ink/90 text-white
                 font-semibold rounded-xl px-5 py-3 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <Target className="w-4 h-4" /> {clubArmed ? `Frapper (${stationLabel(target)})` : "Choisis un club"}
+                <Target className="w-4 h-4" /> {clubArmed ? `Hit (${stationLabel(target)})` : "Pick a club"}
               </button>
             ) : connected ? (
-              <p className="text-sm text-ink/50">{clubArmed ? "Frappe ta balle — le R10 l'enverra." : "Choisis le club avant de frapper."}</p>
+              <p className="text-sm text-ink/50">{clubArmed ? "Hit your ball — the R10 will send it." : "Pick a club before hitting."}</p>
             ) : (
               <button onClick={() => connect()} className="w-full inline-flex items-center justify-center gap-2
                 bg-fairway hover:bg-fairway-light text-white font-semibold rounded-xl px-5 py-3 transition">
-                <Radio className="w-4 h-4" /> Reconnecter
+                <Radio className="w-4 h-4" /> Reconnect
               </button>
             )
           )}
@@ -244,18 +244,18 @@ export function Combine() {
               { id: `combine_${startedAtRef.current}`, startedAt: startedAtRef.current, score, stations }, player,
             ))} className="inline-flex items-center justify-center gap-2 text-sm font-semibold
               rounded-xl px-3 py-2.5 bg-fairway hover:bg-fairway-light text-white transition">
-              <Share2 className="w-4 h-4" /> Partager mon score
+              <Share2 className="w-4 h-4" /> Share my score
             </button>
           )}
           <button onClick={abort} className="inline-flex items-center justify-center gap-2 text-sm font-semibold
             rounded-lg px-3 py-2 bg-panel text-ink/60 hover:bg-ink/5 transition">
-            <RotateCcw className="w-4 h-4" /> {phase === "done" ? "Nouveau Combine" : "Abandonner"}
+            <RotateCcw className="w-4 h-4" /> {phase === "done" ? "New Combine" : "Abort"}
           </button>
         </section>
       </div>
 
       <section className="card p-5 grid gap-3">
-        <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Détail par station</h3>
+        <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Per-station detail</h3>
         <div className="grid gap-1.5">
           {STATIONS.map((t, i) => {
             const st = stations[i];
@@ -272,7 +272,7 @@ export function Combine() {
                   {Array.from({ length: BALLS_PER_STATION }, (_, k) => {
                     const sh = st?.shots[k];
                     return (
-                      <span key={k} title={sh ? `${sh.club} · ${sh.carry.toFixed(0)} m carry · ${Math.abs(sh.offline).toFixed(1)} m ${sh.offline < 0 ? "G" : "D"}` : undefined}
+                      <span key={k} title={sh ? `${sh.club} · ${sh.carry.toFixed(0)} m carry · ${Math.abs(sh.offline).toFixed(1)} m ${sh.offline < 0 ? "L" : "R"}` : undefined}
                         className={"metric text-xs rounded-md px-2 py-1 min-w-[34px] text-center " +
                           (sh == null ? "bg-ink/5 text-ink/25"
                             : sh.score >= 70 ? "bg-fairway/15 text-fairway font-semibold"
@@ -292,8 +292,8 @@ export function Combine() {
           })}
         </div>
         <p className="text-[11px] text-ink/35">
-          Cibles fixes : score sur l'erreur combinée distance + latéral (0 pt à 25 % d'erreur).
-          Driver : 100 pts dans un couloir de ±10 m, −4 pts par mètre au-delà.
+          Fixed targets: scored on combined distance + lateral error (0 pts at 25% error).
+          Driver: 100 pts within a ±10 m corridor, −4 pts per metre beyond.
         </p>
       </section>
     </div>

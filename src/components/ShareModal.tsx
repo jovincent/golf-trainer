@@ -43,8 +43,8 @@ export function ShareModal({ envelope, onClose }: { envelope: ShareEnvelope; onC
         <div className="sticky top-0 z-10 flex items-center gap-2 px-5 py-3 bg-surface/90 backdrop-blur"
           style={{ borderBottom: "1px solid var(--border-card)" }}>
           <Share2 className="w-4 h-4 text-fairway" />
-          <h2 className="font-display text-base">Partager</h2>
-          <button onClick={onClose} aria-label="Fermer" className="ml-auto p-1.5 rounded-lg text-ink/40 hover:bg-panel hover:text-ink transition">
+          <h2 className="font-display text-base">Share</h2>
+          <button onClick={onClose} aria-label="Close" className="ml-auto p-1.5 rounded-lg text-ink/40 hover:bg-panel hover:text-ink transition">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -55,10 +55,10 @@ export function ShareModal({ envelope, onClose }: { envelope: ShareEnvelope; onC
           {/* Link + actions */}
           <div className="w-full grid gap-2 share-actions">
             {err ? (
-              <p className="text-sm text-terracotta text-center">Impossible de créer le lien de partage.</p>
+              <p className="text-sm text-terracotta text-center">Unable to create the share link.</p>
             ) : !token ? (
               <div className="flex items-center justify-center gap-2 text-sm text-ink/50 py-2">
-                <Loader2 className="w-4 h-4 animate-spin" /> Création du lien public…
+                <Loader2 className="w-4 h-4 animate-spin" /> Creating public link…
               </div>
             ) : (
               <>
@@ -66,18 +66,18 @@ export function ShareModal({ envelope, onClose }: { envelope: ShareEnvelope; onC
                   <Link2 className="w-4 h-4 text-ink/40 shrink-0" />
                   <input readOnly value={url} className="flex-1 bg-transparent text-sm text-ink/70 outline-none min-w-0" />
                   <button onClick={copy} className="inline-flex items-center gap-1.5 text-sm font-semibold text-fairway shrink-0 px-2 py-1 rounded-lg hover:bg-fairway/10 transition">
-                    {copied ? <><Check className="w-4 h-4" /> Copié</> : "Copier"}
+                    {copied ? <><Check className="w-4 h-4" /> Copied!</> : "Copy"}
                   </button>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={nativeShare} className="flex-1 inline-flex items-center justify-center gap-2 bg-fairway hover:bg-fairway-light text-white text-sm font-semibold rounded-xl px-4 py-2.5 transition">
-                    <Share2 className="w-4 h-4" /> Partager le lien
+                    <Share2 className="w-4 h-4" /> Share link
                   </button>
                   <button onClick={() => window.print()} className="flex-1 inline-flex items-center justify-center gap-2 bg-ink hover:bg-ink/90 text-white text-sm font-semibold rounded-xl px-4 py-2.5 transition">
                     <Download className="w-4 h-4" /> PDF
                   </button>
                 </div>
-                <p className="text-[11px] text-ink/40 text-center">Lien public, lecture seule · figé à l'instant du partage.</p>
+                <p className="text-[11px] text-ink/40 text-center">Public link, read-only · frozen at the moment of sharing.</p>
               </>
             )}
           </div>

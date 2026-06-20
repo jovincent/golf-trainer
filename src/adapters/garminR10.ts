@@ -75,7 +75,7 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
     try { localStorage.setItem(TEE_RANGE_KEY, String(m)); } catch { /* ignore */ }
     if (this.handshakeComplete) {
       this.sendProto({ service: { shot_config_request: { temperature: 20, humidity: 0.5, altitude: 0, air_density: 1.225, tee_range: m } } });
-      this.log(`Distance R10 → balle réglée à ${(m * 100).toFixed(0)} cm`);
+      this.log(`R10 → ball distance set to ${(m * 100).toFixed(0)} cm`);
     }
   }
 
@@ -109,22 +109,22 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
 
   async connect() {
     if (!this.isSupported()) {
-      this.setState({ status: "error", error: "Web Bluetooth indisponible. Utilise Chrome/Edge sur ordinateur." });
+      this.setState({ status: "error", error: "Web Bluetooth unavailable. Use Chrome/Edge on desktop." });
       return;
     }
     try {
       this.setState({ status: "connecting", error: undefined });
-      this.log("Sélection de l'appareil…");
+      this.log("Selecting device…");
       this.device = await navigator.bluetooth.requestDevice({
         filters: [{ namePrefix: "Approach" }, { namePrefix: "R10" }],
         optionalServices: [SVC_MEASUREMENT, SVC_INTERFACE, SVC_BATTERY, SVC_DEVINFO],
       });
       this.device.addEventListener("gattserverdisconnected", () => {
-        this.log("Déconnecté.");
+        this.log("Disconnected.");
         this.setState({ status: "disconnected" });
       });
       const server = await this.device.gatt!.connect();
-      this.log(`Connecté à ${this.device.name}. Découverte des services…`);
+      this.log(`Connected to ${this.device.name}. Discovering services…`);
 
       // Battery level (standard Battery Service).
       try {
@@ -132,13 +132,13 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
         const bc = await batt.getCharacteristic(CH_BATTERY);
         const v = await bc.readValue();
         this.battery = v.getUint8(0); this.emitBattery();
-        this.log(`Batterie R10 : ${this.battery}%`);
+        this.log(`R10 battery: ${this.battery}%`);
         await bc.startNotifications();
         bc.addEventListener("characteristicvaluechanged", (e) => {
           this.battery = (e.target as BluetoothRemoteGATTCharacteristic).value!.getUint8(0);
           this.emitBattery();
         });
-      } catch (e) { this.log("Batterie indisponible: " + (e as Error).message); }
+      } catch (e) { this.log("Battery unavailable: " + (e as Error).message); }
 
       // Measurement service — subscribe (listeners are diagnostic only).
       try {
@@ -148,8 +148,8 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
           await c.startNotifications();
           c.addEventListener("characteristicvaluechanged", () => {});
         }
-        this.log("Service mesure abonné.");
-      } catch (e) { this.log("Service mesure absent: " + (e as Error).message); }
+        this.log("Measurement service subscribed.");
+      } catch (e) { this.log("Measurement service missing: " + (e as Error).message); }
 
       // Device-interface service — the protobuf channel.
       const iface = await server.getPrimaryService(SVC_INTERFACE);
@@ -160,17 +160,17 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
         const dv = (e.target as BluetoothRemoteGATTCharacteristic).value!;
         this.readBytes(new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength));
       });
-      this.log("Interface abonnée. Handshake…");
+      this.log("Interface subscribed. Handshake…");
 
       const ok = await this.performHandshake();
-      if (!ok) { this.setState({ status: "error", error: "Handshake R10 échoué (voir diagnostic)." }); this.log("❌ Handshake échoué."); return; }
+      if (!ok) { this.setState({ status: "error", error: "R10 handshake failed (see diagnostics)." }); this.log("❌ Handshake failed."); return; }
       this.log("✅ Handshake OK.");
 
       this.setState({ status: "connected", deviceName: this.device.name ?? "Garmin R10" });
 
       // Wake, status, subscribe to launch-monitor alerts (shots).
       await this.sendProto({ service: { wake_up_request: {} } });
-      this.log("Réveil envoyé.");
+      this.log("Wake-up sent.");
       await this.sendProto({ service: { status_request: {} } });
       await this.sendProto({ event: { subscribe_request: { alerts: [{ type: 8 }] } } });
       // Provide shot conditions — some firmwares need this to compute ball flight.
@@ -180,12 +180,12 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
       this.tiltCalSent = false;
       this.tiltError = false;
       this.tilt = null;
-      this.log("⚙️ Calibration de l'inclinaison — pose le R10 à plat, immobile, face à la cible…");
+      this.log("⚙️ Tilt calibration — place the R10 flat, still, facing the target…");
       await this.sendProto({ service: { start_tilt_cal_request: {} } });
-      this.log(`Prêt — frappe une balle (R10 à plat, ~${(this.teeRange * 100).toFixed(0)} cm derrière la balle).`);
+      this.log(`Ready — hit a ball (R10 flat, ~${(this.teeRange * 100).toFixed(0)} cm behind the ball).`);
       this.startTiltPoll();
     } catch (err) {
-      this.log("Erreur: " + (err as Error).message);
+      this.log("Error: " + (err as Error).message);
       this.setState({ status: "error", error: (err as Error).message });
     }
   }
@@ -317,16 +317,16 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
 
     // Readable state transitions.
     if (details.state) {
-      const names = ["Veille", "Test interférences", "Prêt", "Enregistrement", "Traitement", "ERREUR"];
+      const names = ["Idle", "Interference test", "Ready", "Recording", "Processing", "ERROR"];
       const s = details.state.state ?? 0;
-      if (s !== this.lastState) { this.lastState = s; this.log(`État: ${names[s] ?? s}`); }
+      if (s !== this.lastState) { this.lastState = s; this.log(`State: ${names[s] ?? s}`); }
     }
 
     // Errors — PLATFORM_TILTED (3) blocks ball computation → recalibrate once.
     if (details.error && details.error.code != null) {
-      const codes = ["inconnue", "surchauffe", "saturation radar", "plateau incliné"];
+      const codes = ["unknown", "overheating", "radar saturation", "tilted unit"];
       const code = details.error.code;
-      this.log(`⚠️ Erreur R10: ${codes[code] ?? code}`);
+      this.log(`⚠️ R10 error: ${codes[code] ?? code}`);
       if (details.error.deviceTilt) {
         this.tilt = { roll: details.error.deviceTilt.roll ?? 0, pitch: details.error.deviceTilt.pitch ?? 0 };
       }
@@ -335,7 +335,7 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
         this.emitTilt();
         if (!this.tiltCalSent) {
           this.tiltCalSent = true;
-          this.log("↻ Recalibration inclinaison — garde le R10 immobile et à plat…");
+          this.log("↻ Re-calibrating tilt — keep the R10 still and flat…");
           this.sendProto({ service: { start_tilt_cal_request: {} } });
         }
       }
@@ -345,19 +345,19 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
       this.tiltCalSent = false;
       this.tiltError = false;
       this.emitTilt();
-      this.log("✅ Inclinaison calibrée.");
+      this.log("✅ Tilt calibrated.");
     }
 
     const metrics = details.metrics;
     if (!metrics) return;
-    this.log("metrics brut: " + JSON.stringify(metrics).slice(0, 320));
+    this.log("raw metrics: " + JSON.stringify(metrics).slice(0, 320));
 
     const id = metrics.shot_id ?? 0;
     const b = metrics.ball_metrics ?? {};
     // shot_type 0 = PRACTICE → the radar saw the club but no ball launch.
     if (!(b.ball_speed > 0)) {
       const cs = ((metrics.club_metrics?.club_head_speed ?? 0) * MS_TO_KMH).toFixed(0);
-      this.log(`Shot #${id}: ⚠️ aucune balle détectée (swing à vide ou balle hors champ) — club ${cs} km/h. Place une vraie balle ~2 m devant le R10, avec de l'espace pour qu'elle parte.`);
+      this.log(`Shot #${id}: ⚠️ no ball detected (empty swing or ball out of range) — club ${cs} km/h. Place a real ball ~2 m in front of the R10, with room for it to launch.`);
       playError();
       return;
     }
@@ -378,7 +378,7 @@ export class GarminR10Adapter extends AdapterEmitter implements LaunchMonitorAda
     const clubPath = c.club_angle_path ?? 0;
     const flight = ballFlight(ballSpeed, launchAngle, launchDir, backSpin, sideSpin);
 
-    this.log(`Shot #${id}: balle ${ballSpeed.toFixed(0)} km/h, lancement ${launchAngle.toFixed(1)}°, spin ${totalSpin.toFixed(0)} → carry ${flight.carry.toFixed(0)} m`);
+    this.log(`Shot #${id}: ball ${ballSpeed.toFixed(0)} km/h, launch ${launchAngle.toFixed(1)}°, spin ${totalSpin.toFixed(0)} → carry ${flight.carry.toFixed(0)} m`);
 
     this.emitShot({
       id: shotId(), ts: Date.now(),

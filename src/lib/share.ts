@@ -197,7 +197,7 @@ export function shareUrl(token: string): string {
 }
 
 export function formatDate(ts: number): string {
-  return new Date(ts).toLocaleDateString("fr-FR", {
+  return new Date(ts).toLocaleDateString("en-US", {
     weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
 }

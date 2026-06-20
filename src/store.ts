@@ -199,7 +199,7 @@ export const useStore = create<AppState>((set, get) => {
       const session: Session = {
         id: `sess_${Date.now()}`,
         startedAt: Date.now(),
-        label: new Date().toLocaleString("fr-FR", {
+        label: new Date().toLocaleString("en-US", {
           weekday: "short", day: "numeric", month: "short",
           hour: "2-digit", minute: "2-digit",
         }),
@@ -280,7 +280,7 @@ export const useStore = create<AppState>((set, get) => {
           id: `demo_${i}_${startedAt}`,
           startedAt,
           endedAt: startedAt + 30 * 60_000,
-          label: new Date(startedAt).toLocaleDateString("fr-FR", {
+          label: new Date(startedAt).toLocaleDateString("en-US", {
             weekday: "short", day: "numeric", month: "short",
           }),
           shots,

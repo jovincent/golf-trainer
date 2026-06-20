@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Download, Trash2, Sparkles, ChevronDown, ChevronRight, Calendar, AlertTriangle, Share2, Filter, ArrowDownWideNarrow } from "lucide-react";
+import { Download, Trash2, Sparkles, ChevronDown, ChevronRight, Calendar, Share2, Filter, ArrowDownWideNarrow } from "lucide-react";
 import { useStore } from "../store";
 import { shotsToCsv, downloadText } from "../lib/export";
 import { mean } from "../lib/stats";
-import { clubSuspicion, buildClubModel, type ClubModel } from "../lib/clubCheck";
 import { CLUBS, CLUB_LABELS, type Club, type Session, type Shot } from "../types";
 import { ShareModal } from "../components/ShareModal";
 import { buildSessionShare, type ShareEnvelope } from "../lib/share";
@@ -11,12 +10,9 @@ import { usePlayerName } from "../lib/usePlayerName";
 
 export function History() {
   const { sessions, deleteSession, deleteShot, clearHistory, seedDemo } = useStore();
-  const current = useStore((s) => s.current);
   const player = usePlayerName();
   const [share, setShare] = useState<ShareEnvelope | null>(null);
   const allShots = sessions.flatMap((s) => s.shots);
-  // Personal per-club model learnt from every shot this player has hit.
-  const model = buildClubModel([...(current?.shots ?? []), ...allShots]);
 
   // Club filter: when any club is selected, keep only matching shots and hide
   // sessions left empty. Model above stays built from the full, unfiltered set.
@@ -45,16 +41,16 @@ export function History() {
       <section className="card p-4 flex flex-wrap items-center gap-2">
         <Calendar className="w-5 h-5 text-teal" />
         <div className="mr-auto">
-          <h2 className="font-display text-lg leading-tight">Historique</h2>
+          <h2 className="font-display text-lg leading-tight">History</h2>
           <p className="text-sm text-ink/50">
             {flat ? (
               <>
-                {shownShots.length} coup{shownShots.length > 1 ? "s" : ""}
-                {filtering && <span className="text-fairway font-semibold"> · filtré {[...clubFilter].join(" · ")}</span>}
-                {sort !== "session" && <span className="text-teal font-semibold"> · trié par {SORTS[effSort].label.toLowerCase()}</span>}
+                {shownShots.length} shot{shownShots.length > 1 ? "s" : ""}
+                {filtering && <span className="text-fairway font-semibold"> · filtered {[...clubFilter].join(" · ")}</span>}
+                {sort !== "session" && <span className="text-teal font-semibold"> · sorted by {SORTS[effSort].label.toLowerCase()}</span>}
               </>
             ) : (
-              <>{shownSessions.length} séance{shownSessions.length > 1 ? "s" : ""} · {shownShots.length} balles</>
+              <>{shownSessions.length} session{shownSessions.length > 1 ? "s" : ""} · {shownShots.length} balls</>
             )}
           </p>
         </div>
@@ -71,17 +67,17 @@ export function History() {
           className="inline-flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2
                      bg-teal/10 hover:bg-teal/20 text-teal transition"
         >
-          <Sparkles className="w-4 h-4" /> Données de démo
+          <Sparkles className="w-4 h-4" /> Demo data
         </button>
         {sessions.length > 0 && (
           <button
             onClick={() => {
-              if (confirm("Effacer tout l'historique ?")) clearHistory();
+              if (confirm("Clear all history?")) clearHistory();
             }}
             className="inline-flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2
                        text-terracotta hover:bg-terracotta/10 transition"
           >
-            <Trash2 className="w-4 h-4" /> Tout effacer
+            <Trash2 className="w-4 h-4" /> Clear all
           </button>
         )}
       </section>
@@ -91,20 +87,20 @@ export function History() {
           <span className="text-[11px] uppercase tracking-wide text-ink/40 font-semibold mr-1 inline-flex items-center gap-1.5">
             <Filter className="w-3.5 h-3.5" /> Club
           </span>
-          <button onClick={() => setClubFilter(new Set())} className={chip(!filtering)}>Tous</button>
+          <button onClick={() => setClubFilter(new Set())} className={chip(!filtering)}>All</button>
           {clubsInHistory.map((c) => (
             <button key={c} onClick={() => toggleClub(c)} className={chip(clubFilter.has(c))} title={CLUB_LABELS[c]}>
               {c}
             </button>
           ))}
           <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wide text-ink/40 font-semibold">
-            <ArrowDownWideNarrow className="w-3.5 h-3.5" /> Trier
+            <ArrowDownWideNarrow className="w-3.5 h-3.5" /> Sort
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as "session" | SortKey)}
               className="font-sans text-xs normal-case tracking-normal font-medium text-ink/70 bg-panel rounded-lg px-2 py-1 border border-black/5 outline-none"
             >
-              <option value="session">Par séance</option>
+              <option value="session">By session</option>
               {(Object.keys(SORTS) as SortKey[]).map((k) => (
                 <option key={k} value={k}>{SORTS[k].label}</option>
               ))}
@@ -115,18 +111,17 @@ export function History() {
 
       {sessions.length === 0 ? (
         <div className="card p-8 text-center text-ink/40">
-          Aucune séance enregistrée. Termine une séance depuis l'onglet Séance, ou clique
-          <span className="text-teal font-semibold"> Données de démo</span> pour explorer l'app.
+          No sessions recorded. Finish a session from the Session tab, or click
+          <span className="text-teal font-semibold"> Demo data</span> to explore the app.
         </div>
       ) : shownSessions.length === 0 ? (
         <div className="card p-8 text-center text-ink/40">
-          Aucun tir avec ce filtre. <button onClick={() => setClubFilter(new Set())} className="text-fairway font-semibold">Réinitialiser</button>
+          No shots with this filter. <button onClick={() => setClubFilter(new Set())} className="text-fairway font-semibold">Reset</button>
         </div>
       ) : flat ? (
         // Flat mode (club filter and/or metric sort): no session grouping.
         <ClubShotList
           entries={shownSessions.flatMap((s) => s.shots.map((shot) => ({ shot, sessionId: s.id })))}
-          model={model}
           sortKey={effSort}
         />
       ) : (
@@ -135,7 +130,6 @@ export function History() {
             <SessionRow
               key={s.id}
               session={s}
-              model={model}
               onShare={() => setShare(buildSessionShare(s, player))}
               onDelete={() => deleteSession(s.id)}
               onDeleteShot={(shotId) => deleteShot(s.id, shotId)}
@@ -182,22 +176,21 @@ type SortKey = "date" | "carry" | "ball" | "club" | "smash";
 const SORTS: Record<SortKey, { label: string; cmp: (a: ShotEntry, b: ShotEntry) => number }> = {
   date:  { label: "Date",          cmp: (a, b) => b.shot.ts - a.shot.ts },
   carry: { label: "Carry",         cmp: (a, b) => b.shot.carry - a.shot.carry },
-  ball:  { label: "Vitesse balle", cmp: (a, b) => b.shot.ballSpeed - a.shot.ballSpeed },
-  club:  { label: "Vitesse club",  cmp: (a, b) => b.shot.clubSpeed - a.shot.clubSpeed },
+  ball:  { label: "Ball speed",    cmp: (a, b) => b.shot.ballSpeed - a.shot.ballSpeed },
+  club:  { label: "Club speed",    cmp: (a, b) => b.shot.clubSpeed - a.shot.clubSpeed },
   smash: { label: "Smash",         cmp: (a, b) => b.shot.smashFactor - a.shot.smashFactor },
 };
 
 // ── One shot row (reused by the per-session view and the flat club-filter view) ──
-function ShotRow({ shot: s, model, badge, onUpdateClub, onDeleteShot, setHover }: {
-  shot: Shot; model: ClubModel; badge: string;
+function ShotRow({ shot: s, badge, onUpdateClub, onDeleteShot, setHover }: {
+  shot: Shot; badge: string;
   onUpdateClub: (club: Club) => void; onDeleteShot: () => void; setHover: (h: HoverState) => void;
 }) {
   const absOff = Math.abs(s.offlineM);
-  const offDir = absOff < 1 ? null : s.offlineM < 0 ? "← G" : "D →";
+  const offDir = absOff < 1 ? null : s.offlineM < 0 ? "← L" : "R →";
   const offRatio = absOff / Math.max(1, s.carry);
   const offColor = absOff < 1 ? "text-fairway" : offRatio < 0.05 ? "text-fairway" : offRatio < 0.08 ? "text-gold" : "text-terracotta";
   const offBg = absOff < 1 ? "bg-fairway/10" : offRatio < 0.05 ? "bg-fairway/10" : offRatio < 0.08 ? "bg-gold/10" : "bg-terracotta/10";
-  const susp = clubSuspicion(s, model);
 
   return (
     <div
@@ -207,29 +200,18 @@ function ShotRow({ shot: s, model, badge, onUpdateClub, onDeleteShot, setHover }
       onMouseMove={(e) => setHover({ s, x: e.clientX, y: e.clientY })}
       onMouseLeave={() => setHover(null)}
     >
-      {/* badge + Club (editable, flagged if suspicious) */}
+      {/* badge + Club (editable) */}
       <div className="flex flex-col items-start gap-0.5">
         <span className="text-[10px] text-ink/30 leading-none metric">{badge}</span>
         <select
           value={s.club}
           onClick={(e) => e.stopPropagation()}
           onChange={(e) => onUpdateClub(e.target.value as Club)}
-          title={susp.suspicious
-            ? `Club possiblement erroné : la vitesse balle (${s.ballSpeed.toFixed(0)} km/h) correspond à ${CLUB_LABELS[susp.expected]}. Corrige si besoin.`
-            : "Changer le club de ce coup"}
-          className={"font-display text-sm font-bold rounded-md pl-1 pr-0.5 py-0.5 border bg-surface cursor-pointer outline-none " +
-            (susp.suspicious ? "border-terracotta text-terracotta" : "border-transparent text-ink/80 hover:border-ink/15")}
+          title="Change this shot's club"
+          className="font-display text-sm font-bold rounded-md pl-1 pr-0.5 py-0.5 border border-transparent text-ink/80 hover:border-ink/15 bg-surface cursor-pointer outline-none"
         >
           {CLUBS.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
-        {susp.suspicious && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onUpdateClub(susp.expected); }}
-            title={`Corriger en ${CLUB_LABELS[susp.expected]}`}
-            className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-terracotta hover:underline">
-            <AlertTriangle className="w-2.5 h-2.5" /> → {susp.expected}
-          </button>
-        )}
       </div>
 
       {/* Carry + total — same size, side by side */}
@@ -246,12 +228,12 @@ function ShotRow({ shot: s, model, badge, onUpdateClub, onDeleteShot, setHover }
 
       {/* Secondary metrics — 3×2 grid */}
       <div className="grid grid-cols-3 gap-x-3 gap-y-1.5">
-        <Metric label="V. club"  value={`${s.clubSpeed.toFixed(0)} km/h`} />
-        <Metric label="V. balle" value={`${s.ballSpeed.toFixed(0)} km/h`} />
+        <Metric label="Club spd"  value={`${s.clubSpeed.toFixed(0)} km/h`} />
+        <Metric label="Ball spd" value={`${s.ballSpeed.toFixed(0)} km/h`} />
         <Metric label="Smash"    value={s.smashFactor.toFixed(2)} />
         <Metric label="Apex"     value={`${s.apex.toFixed(0)} m`} />
         <Metric label="Backspin" value={`${(s.backSpin ?? 0).toFixed(0)} rpm`} />
-        <Metric label="Lancement" value={`${(s.launchAngle ?? 0).toFixed(1)}°`} />
+        <Metric label="Launch" value={`${(s.launchAngle ?? 0).toFixed(1)}°`} />
       </div>
 
       {/* Offline badge */}
@@ -259,13 +241,13 @@ function ShotRow({ shot: s, model, badge, onUpdateClub, onDeleteShot, setHover }
         <span className={`metric text-base font-bold leading-none ${offColor}`}>
           {absOff < 1 ? "—" : `${absOff.toFixed(1)} m`}
         </span>
-        <span className={`text-[10px] font-semibold mt-0.5 ${offColor}`}>{offDir ?? "droit"}</span>
+        <span className={`text-[10px] font-semibold mt-0.5 ${offColor}`}>{offDir ?? "straight"}</span>
       </div>
 
       {/* Delete */}
       <button
         onClick={onDeleteShot}
-        title="Supprimer ce tir"
+        title="Delete this shot"
         className="p-1.5 rounded-lg text-ink/20 hover:text-terracotta hover:bg-terracotta/10 transition opacity-0 group-hover:opacity-100 justify-self-center"
       >
         <Trash2 className="w-4 h-4" />
@@ -277,7 +259,7 @@ function ShotRow({ shot: s, model, badge, onUpdateClub, onDeleteShot, setHover }
 function PerClubSummary({ shots }: { shots: Shot[] }) {
   return (
     <div className="px-4 py-3 border-b border-black/5 bg-panel/20">
-      <div className="text-[10px] uppercase tracking-widest text-ink/40 font-semibold mb-2">Carry / total moyen par club</div>
+      <div className="text-[10px] uppercase tracking-widest text-ink/40 font-semibold mb-2">Avg carry / total by club</div>
       <div className="flex flex-wrap gap-2">
         {carryByClub(shots).map(({ club, n, avg, avgTotal }) => (
           <div key={club} className="flex items-baseline gap-1.5 rounded-lg bg-surface border border-black/5 px-2.5 py-1.5">
@@ -297,16 +279,16 @@ function ShotTableHeader({ firstCol }: { firstCol: string }) {
     <div className="grid gap-x-3 px-4 py-2 bg-panel/40" style={{ gridTemplateColumns: "2.5rem 7.5rem 1fr 5rem 2.5rem" }}>
       <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold">{firstCol}</span>
       <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold">Carry · total</span>
-      <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold">Métriques</span>
-      <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold text-right">Écart lat.</span>
+      <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold">Metrics</span>
+      <span className="text-[10px] uppercase tracking-wide text-ink/40 font-semibold text-right">Offline</span>
       <span />
     </div>
   );
 }
 
 // ── Flat list of shots — no session grouping; sortable by date / speed / smash ──
-function ClubShotList({ entries, model, sortKey }: {
-  entries: ShotEntry[]; model: ClubModel; sortKey: SortKey;
+function ClubShotList({ entries, sortKey }: {
+  entries: ShotEntry[]; sortKey: SortKey;
 }) {
   const updateShotClub = useStore((s) => s.updateShotClub);
   const deleteShot = useStore((s) => s.deleteShot);
@@ -323,8 +305,7 @@ function ClubShotList({ entries, model, sortKey }: {
           <ShotRow
             key={shot.id}
             shot={shot}
-            model={model}
-            badge={new Date(shot.ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}
+            badge={new Date(shot.ts).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}
             onUpdateClub={(club) => updateShotClub(sessionId, shot.id, club)}
             onDeleteShot={() => deleteShot(sessionId, shot.id)}
             setHover={setHover}
@@ -335,15 +316,14 @@ function ClubShotList({ entries, model, sortKey }: {
   );
 }
 
-function SessionRow({ session, model, onShare, onDelete, onDeleteShot }: {
-  session: Session; model: ClubModel; onShare: () => void; onDelete: () => void; onDeleteShot: (shotId: string) => void;
+function SessionRow({ session, onShare, onDelete, onDeleteShot }: {
+  session: Session; onShare: () => void; onDelete: () => void; onDeleteShot: (shotId: string) => void;
 }) {
   const updateShotClub = useStore((s) => s.updateShotClub);
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState<{ s: Shot; x: number; y: number } | null>(null);
   const shots = session.shots;
   const clubs = [...new Set(shots.map((s) => s.club))];
-  const suspectCount = shots.filter((s) => clubSuspicion(s, model).suspicious).length;
 
   return (
     <div className="card overflow-hidden">
@@ -356,15 +336,9 @@ function SessionRow({ session, model, onShare, onDelete, onDeleteShot }: {
         <div className="mr-auto">
           <div className="font-semibold text-sm capitalize">{session.label}</div>
           <div className="text-xs text-ink/40 metric">
-            {shots.length} balle{shots.length > 1 ? "s" : ""} · {clubs.join(" · ")}
+            {shots.length} ball{shots.length > 1 ? "s" : ""} · {clubs.join(" · ")}
           </div>
         </div>
-        {suspectCount > 0 && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-terracotta bg-terracotta/10 rounded-full px-2 py-1"
-            title={`${suspectCount} coup(s) au club possiblement mal renseigné`}>
-            <AlertTriangle className="w-3.5 h-3.5" /> {suspectCount} à vérifier
-          </span>
-        )}
         <div className="text-right">
           <div className="metric text-sm font-semibold">{clubs.length}</div>
           <div className="text-[11px] text-ink/40">club{clubs.length > 1 ? "s" : ""}</div>
@@ -372,14 +346,14 @@ function SessionRow({ session, model, onShare, onDelete, onDeleteShot }: {
         <span
           onClick={(e) => { e.stopPropagation(); onShare(); }}
           className="ml-2 p-2 rounded-lg text-ink/30 hover:text-fairway hover:bg-fairway/10 transition"
-          title="Partager la séance"
+          title="Share session"
         >
           <Share2 className="w-4 h-4" />
         </span>
         <span
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
           className="p-2 rounded-lg text-ink/30 hover:text-terracotta hover:bg-terracotta/10 transition"
-          title="Supprimer la séance"
+          title="Delete session"
         >
           <Trash2 className="w-4 h-4" />
         </span>
@@ -396,7 +370,6 @@ function SessionRow({ session, model, onShare, onDelete, onDeleteShot }: {
               <ShotRow
                 key={s.id}
                 shot={s}
-                model={model}
                 badge={`#${shots.length - idx}`}
                 onUpdateClub={(club) => updateShotClub(session.id, s.id, club)}
                 onDeleteShot={() => onDeleteShot(s.id)}
@@ -414,31 +387,31 @@ function SessionRow({ session, model, onShare, onDelete, onDeleteShot }: {
 function ShotPopover({ shot, x, y }: { shot: Shot; x: number; y: number }) {
   const num = (v: number | undefined, dp = 1, unit = "") => (v == null ? "—" : `${v.toFixed(dp)}${unit}`);
   const lr = (v: number | undefined, dp = 1, unit = "") =>
-    v == null ? "—" : `${Math.abs(v).toFixed(dp)}${unit}${v < 0 ? " G" : " D"}`;
+    v == null ? "—" : `${Math.abs(v).toFixed(dp)}${unit}${v < 0 ? " L" : " R"}`;
   const spinTotal = Math.hypot(shot.backSpin ?? 0, shot.sideSpin ?? 0);
 
   const rows: Array<[string, string]> = [
-    ["Date", new Date(shot.ts).toLocaleString("fr-FR")],
+    ["Date", new Date(shot.ts).toLocaleString("en-US")],
     ["Club", shot.club],
-    ["Vitesse balle", num(shot.ballSpeed, 1, " km/h")],
-    ["Vitesse club", num(shot.clubSpeed, 1, " km/h")],
+    ["Ball speed", num(shot.ballSpeed, 1, " km/h")],
+    ["Club speed", num(shot.clubSpeed, 1, " km/h")],
     ["Smash factor", num(shot.smashFactor, 2)],
-    ["Angle de lancement", num(shot.launchAngle, 1, "°")],
-    ["Direction lancement", lr(shot.launchDir, 1, "°")],
-    ["Angle d'attaque", num(shot.attackAngle, 1, "°")],
+    ["Launch angle", num(shot.launchAngle, 1, "°")],
+    ["Launch direction", lr(shot.launchDir, 1, "°")],
+    ["Attack angle", num(shot.attackAngle, 1, "°")],
     ["Club path", lr(shot.clubPath, 1, "°")],
     ["Club face", lr(shot.clubFace, 1, "°")],
     ["Face to path", lr(shot.faceToPath, 1, "°")],
     ["Backspin", num(shot.backSpin, 0, " rpm")],
     ["Sidespin", lr(shot.sideSpin, 0, " rpm")],
-    ["Spin total", `${spinTotal.toFixed(0)} rpm`],
-    ["Axe de spin", lr(shot.spinAxis, 1, "°")],
+    ["Total spin", `${spinTotal.toFixed(0)} rpm`],
+    ["Spin axis", lr(shot.spinAxis, 1, "°")],
     ["Carry", num(shot.carry, 1, " m")],
     ["Total", num(shot.total, 1, " m")],
     ["Apex", num(shot.apex, 1, " m")],
-    ["Déviation totale", lr(shot.offlineM, 1, " m")],
-    ["Déviation carry", lr(shot.carryDeviation, 1, " m")],
-    ["Source", shot.sim ? "Simulateur" : "Garmin R10"],
+    ["Total deviation", lr(shot.offlineM, 1, " m")],
+    ["Carry deviation", lr(shot.carryDeviation, 1, " m")],
+    ["Source", shot.sim ? "Simulator" : "Garmin R10"],
   ];
 
   const left = Math.min(x + 16, (typeof window !== "undefined" ? window.innerWidth : 1200) - 300);
@@ -450,7 +423,7 @@ function ShotPopover({ shot, x, y }: { shot: Shot; x: number; y: number }) {
       style={{ left, top }}
     >
       <div className="text-[10px] uppercase tracking-widest text-ink/40 mb-2 font-semibold">
-        Détail complet · {shot.club}
+        Full detail · {shot.club}
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
         {rows.map(([k, v]) => (

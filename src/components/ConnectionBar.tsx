@@ -23,7 +23,7 @@ export function ConnectionBar() {
           className="font-sans text-sm bg-panel rounded-lg px-3 py-1.5 border border-black/5
                      disabled:opacity-60"
         >
-          <option value="simulator">Simulateur</option>
+          <option value="simulator">Simulator</option>
           <option value="garmin-r10">Garmin Approach R10</option>
         </select>
       </div>
@@ -39,7 +39,7 @@ export function ConnectionBar() {
           <WifiOff className="w-4 h-4 text-ink/40" />
         )}
         <span className="metric text-ink/70">
-          {connected ? conn.deviceName : connecting ? "Connexion…" : "Déconnecté"}
+          {connected ? conn.deviceName : connecting ? "Connecting…" : "Disconnected"}
         </span>
       </div>
 
@@ -50,7 +50,7 @@ export function ConnectionBar() {
             onClick={() => connect()}
             className="text-xs font-semibold text-terracotta underline whitespace-nowrap shrink-0"
           >
-            Réessayer
+            Retry
           </button>
         </div>
       )}
@@ -67,7 +67,7 @@ export function ConnectionBar() {
                        disabled:opacity-60"
           >
             {adapterId === "garmin-r10" ? <Bluetooth className="w-4 h-4" /> : <Radio className="w-4 h-4" />}
-            Connecter
+            Connect
           </button>
         ) : (
           <button
@@ -75,7 +75,7 @@ export function ConnectionBar() {
             className="text-sm font-semibold rounded-lg px-4 py-2 bg-panel hover:bg-ink/5
                        text-ink/70 transition"
           >
-            Déconnecter
+            Disconnect
           </button>
         )}
       </div>
@@ -93,13 +93,11 @@ function FlightModelToggle() {
     <select
       value={m}
       onChange={(e) => { const v = e.target.value as FlightModel; setM(v); setFlightModel(v); recomputeAll(); }}
-      title="Modèle de calcul des distances"
+      title="Distance calculation: Realistic (calibrated on real measured shots) or Theoretical (pure physics)"
       className="font-sans text-xs bg-panel rounded-lg px-2 py-1.5 border border-black/5 text-ink/70"
     >
-      <option value="calibrated">Modèle : Calibré</option>
-      <option value="truth">Modèle : TRUTH 🎯</option>
-      <option value="physics">Modèle : Physique</option>
-      <option value="regression">Modèle : Régression</option>
+      <option value="truth">Flight model: Realistic 🎯</option>
+      <option value="physics">Flight model: Theoretical</option>
     </select>
   );
 }
@@ -109,8 +107,8 @@ function SoundToggle() {
   return (
     <button
       onClick={() => { const v = !on; setOn(v); setSoundsEnabled(v); if (v) playSuccess(); }}
-      title={on ? "Sons activés" : "Sons coupés"}
-      aria-label={on ? "Couper les sons" : "Activer les sons"}
+      title={on ? "Sounds on" : "Sounds off"}
+      aria-label={on ? "Mute sounds" : "Enable sounds"}
       className="p-2 rounded-lg text-ink/50 hover:bg-panel transition"
     >
       {on ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -122,7 +120,7 @@ function BatteryBadge({ level }: { level: number }) {
   const Icon = level <= 15 ? BatteryWarning : level <= 35 ? BatteryLow : level <= 70 ? BatteryMedium : BatteryFull;
   const color = level <= 15 ? "text-terracotta" : level <= 35 ? "text-gold" : "text-fairway";
   return (
-    <span className={"inline-flex items-center gap-1.5 text-sm font-semibold " + color} title="Batterie R10">
+    <span className={"inline-flex items-center gap-1.5 text-sm font-semibold " + color} title="R10 battery">
       <Icon className="w-4 h-4" /> {level}%
     </span>
   );
@@ -150,16 +148,16 @@ function R10Status() {
       {connected && tilt ? (
         tilt.level ? (
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg px-2.5 py-1 bg-fairway/10 text-fairway">
-            <CheckCircle2 className="w-4 h-4" /> R10 à plat
+            <CheckCircle2 className="w-4 h-4" /> R10 level
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg px-2.5 py-1 bg-terracotta/10 text-terracotta animate-pulse">
-            <AlertTriangle className="w-4 h-4" /> R10 incliné — repose-le à plat
+            <AlertTriangle className="w-4 h-4" /> R10 tilted — set it flat
           </span>
         )
       ) : (
         <span className="inline-flex items-center gap-1.5 text-sm text-ink/40">
-          <AlertTriangle className="w-4 h-4" /> Inclinaison : connecte le R10
+          <AlertTriangle className="w-4 h-4" /> Tilt: connect the R10
         </span>
       )}
       {tilt && (
@@ -170,7 +168,7 @@ function R10Status() {
 
       {/* tee range (R10 → ball) */}
       <label className="ml-auto flex items-center gap-2 text-sm text-ink/60">
-        <Ruler className="w-4 h-4 text-ink/40" /> Distance R10 → balle
+        <Ruler className="w-4 h-4 text-ink/40" /> R10 → ball distance
         <input
           type="number" min={50} max={600} step={1} value={cm}
           onChange={(e) => { const v = Number(e.target.value); setCm(v); if (v >= 50 && v <= 600) garminAdapter.setTeeRange(v / 100); }}
@@ -198,13 +196,13 @@ function R10Diagnostic() {
     <div className="card overflow-hidden">
       <button onClick={() => setOpen((o) => !o)}
         className="w-full flex items-center gap-2 px-4 py-2 text-left text-xs uppercase tracking-wide text-ink/50 hover:bg-panel/40">
-        <Terminal className="w-3.5 h-3.5" /> Diagnostic R10 (Bluetooth) · {lines.length} lignes
+        <Terminal className="w-3.5 h-3.5" /> R10 diagnostics (Bluetooth) · {lines.length} lines
         <span className="ml-auto">{open ? "−" : "+"}</span>
       </button>
       {open && (
         <div ref={boxRef} className="max-h-44 overflow-auto bg-ink/[0.03] border-t border-black/5 px-4 py-2 font-mono text-[11px] leading-relaxed text-ink/70">
           {lines.length === 0
-            ? <div className="text-ink/35">En attente… clique « Connecter », choisis ton R10, puis frappe une balle.</div>
+            ? <div className="text-ink/35">Waiting… click "Connect", pick your R10, then hit a ball.</div>
             : lines.map((l, i) => <div key={i}>{l}</div>)}
         </div>
       )}

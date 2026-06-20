@@ -104,37 +104,37 @@ function BullseyeChart({ aggs }: { aggs: ClubAgg[] }) {
           <line x1={cx - 7} y1={cy} x2={cx + 7} y2={cy} stroke="rgb(var(--c-ink))" strokeWidth={1} />
           <line x1={cx} y1={cy - 7} x2={cx} y2={cy + 7} stroke="rgb(var(--c-ink))" strokeWidth={1} />
           {/* Direction labels */}
-          <text x={PAD + 2} y={cy + 11} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3}>◀ G</text>
-          <text x={W - PAD - 2} y={cy + 11} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3} textAnchor="end">D ▶</text>
+          <text x={PAD + 2} y={cy + 11} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3}>◀ L</text>
+          <text x={W - PAD - 2} y={cy + 11} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3} textAnchor="end">R ▶</text>
           <text x={cx + 3} y={PAD + 10} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3}>▲ Long</text>
-          <text x={cx + 3} y={H - PAD - 2} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3}>▼ Court</text>
+          <text x={cx + 3} y={H - PAD - 2} fontSize={8} fontFamily="Manrope" fill="rgb(var(--c-ink))" fillOpacity={0.3}>▼ Short</text>
         </svg>
         <div className="grid gap-2 min-w-[140px]">
           <div className="bg-panel rounded-xl px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-ink/45">Carry moyen</div>
+            <div className="text-[10px] uppercase tracking-wide text-ink/45">Avg carry</div>
             <div className="metric text-lg font-semibold text-ink">{agg.carry.toFixed(0)} m</div>
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-ink/45">Dérive moy.</div>
+            <div className="text-[10px] uppercase tracking-wide text-ink/45">Avg drift</div>
             <div className={"metric text-lg font-semibold " + (meanOffline > 1.5 ? "text-terracotta" : meanOffline < -1.5 ? "text-teal" : "text-fairway")}>
               {meanOffline > 0 ? "+" : ""}{meanOffline.toFixed(1)} m
             </div>
             <div className="text-[10px] text-ink/40 mt-0.5">
-              {meanOffline > 2 ? "tendance fade" : meanOffline < -2 ? "tendance draw" : "centré"}
+              {meanOffline > 2 ? "fade tendency" : meanOffline < -2 ? "draw tendency" : "centered"}
             </div>
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-ink/45">Dispersion lat. ±</div>
+            <div className="text-[10px] uppercase tracking-wide text-ink/45">Lateral dispersion ±</div>
             <div className="metric text-lg font-semibold text-teal">{agg.offlineSd.toFixed(1)} m</div>
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
-            <div className="text-[10px] uppercase tracking-wide text-ink/45">Régularité carry ±</div>
+            <div className="text-[10px] uppercase tracking-wide text-ink/45">Carry consistency ±</div>
             <div className="metric text-lg font-semibold text-gold">{agg.carrySd.toFixed(1)} m</div>
           </div>
           <div className="flex flex-col gap-1 pt-1 text-[11px] text-ink/55">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-fairway inline-block shrink-0" /> ≤ 5 % carry</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gold inline-block shrink-0" /> 5 – 8 %</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-terracotta inline-block shrink-0" /> &gt; 8 %</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-fairway inline-block shrink-0" /> ≤ 5% carry</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gold inline-block shrink-0" /> 5 – 8%</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-terracotta inline-block shrink-0" /> &gt; 8%</span>
           </div>
         </div>
       </div>
@@ -248,7 +248,7 @@ export function Stats() {
   if (!aggs.length) {
     return (
       <div className="card p-8 text-center text-ink/40">
-        Pas encore de données. Frappe des balles (ou Historique → Données de démo) pour peupler les graphiques.
+        No data yet. Hit some balls (or History → Demo data) to populate the charts.
       </div>
     );
   }
@@ -274,8 +274,8 @@ export function Stats() {
       {/* Header — share & export */}
       <section className="card p-4 flex flex-wrap items-center gap-2">
         <div className="mr-auto">
-          <h2 className="font-display text-lg leading-tight">Statistiques</h2>
-          <p className="text-sm text-ink/50">{shots.length} balles · {aggs.length} clubs</p>
+          <h2 className="font-display text-lg leading-tight">Stats</h2>
+          <p className="text-sm text-ink/50">{shots.length} balls · {aggs.length} clubs</p>
         </div>
         <button
           onClick={() => downloadText("flightlab-stats.csv", aggsToCsv(aggs))}
@@ -287,21 +287,21 @@ export function Stats() {
           onClick={() => setShare(buildStatsShare(shots, player))}
           className="inline-flex items-center gap-2 text-sm font-semibold rounded-lg px-3 py-2 bg-fairway hover:bg-fairway-light text-white transition"
         >
-          <Share2 className="w-4 h-4" /> Partager
+          <Share2 className="w-4 h-4" /> Share
         </button>
       </section>
 
       {/* 1 — Carry moyen par club (± régularité) */}
       <section className="card p-5">
-        <h2 className="font-display text-lg mb-1">Carry moyen par club</h2>
-        <p className="text-sm text-ink/50 mb-4">Barres d'erreur = ± régularité (écart-type), balles ratées exclues.</p>
+        <h2 className="font-display text-lg mb-1">Avg carry by club</h2>
+        <p className="text-sm text-ink/50 mb-4">Error bars = ± consistency (std dev), mishits excluded.</p>
         <div style={{ height: Math.max(220, aggs.length * 38) }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={carryData} layout="vertical" margin={{ left: 8, right: 48 }}>
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="club" width={40} tick={tick} axisLine={false} tickLine={false} />
               <Tooltip
-                formatter={(v: number, n) => [n === "carry" ? `${v} m` : `±${v} m`, n === "carry" ? "Carry" : "Régularité"]}
+                formatter={(v: number, n) => [n === "carry" ? `${v} m` : `±${v} m`, n === "carry" ? "Carry" : "Consistency"]}
                 contentStyle={tooltip}
               />
               <Bar dataKey="carry" radius={[0, 5, 5, 0]} barSize={18}>
@@ -316,16 +316,16 @@ export function Stats() {
 
       {/* Détail par club */}
       <section className="card overflow-hidden">
-        <h2 className="font-display text-base px-4 py-3 border-b border-black/5">Détail par club</h2>
+        <h2 className="font-display text-base px-4 py-3 border-b border-black/5">Per-club detail</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-[11px] uppercase tracking-wide text-ink/40 text-right">
                 <th className="text-left px-4 py-2">Club</th>
-                <th className="px-3 py-2">Balles</th>
-                <th className="px-3 py-2">Moyenne</th>
+                <th className="px-3 py-2">Balls</th>
+                <th className="px-3 py-2">Average</th>
                 <th className="px-3 py-2">Optimal</th>
-                <th className="px-3 py-2">Médiane</th>
+                <th className="px-3 py-2">Median</th>
                 <th className="px-3 py-2">±</th>
               </tr>
             </thead>
@@ -343,13 +343,13 @@ export function Stats() {
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-ink/40 px-4 py-2">Distances en m · « +N » = balles ratées exclues · Optimal = moyenne des meilleures balles.</p>
+        <p className="text-[11px] text-ink/40 px-4 py-2">Distances in m · "+N" = mishits excluded · Optimal = average of best shots.</p>
       </section>
 
       <div className="grid md:grid-cols-2 gap-4">
         {/* 2 — Smash factor par club */}
         <section className="card p-5">
-          <h2 className="font-display text-base mb-3">Smash factor par club</h2>
+          <h2 className="font-display text-base mb-3">Smash factor by club</h2>
           <div style={{ height: 240 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={smashData} margin={{ left: -10, right: 8, top: 8 }}>
@@ -367,15 +367,15 @@ export function Stats() {
 
         {/* 3 — Régularité (écart-type carry) par club */}
         <section className="card p-5">
-          <h2 className="font-display text-base mb-3">Régularité par club (± carry)</h2>
-          <p className="text-xs text-ink/45 mb-2">Plus la barre est courte, plus tu es constant.</p>
+          <h2 className="font-display text-base mb-3">Consistency by club (± carry)</h2>
+          <p className="text-xs text-ink/45 mb-2">The shorter the bar, the more consistent you are.</p>
           <div style={{ height: 214 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sdData} margin={{ left: -10, right: 8, top: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eef3fb" vertical={false} />
                 <XAxis dataKey="club" tick={tick} axisLine={false} tickLine={false} interval={0} />
                 <YAxis tick={tick} axisLine={false} tickLine={false} unit=" m" />
-                <Tooltip formatter={(v: number) => [`±${v} m`, "Régularité"]} contentStyle={tooltip} />
+                <Tooltip formatter={(v: number) => [`±${v} m`, "Consistency"]} contentStyle={tooltip} />
                 <Bar dataKey="sd" radius={[5, 5, 0, 0]} barSize={16} fill="#2F8FA6">
                   {sdData.map((_, i) => <Cell key={i} fill={colorFor(i)} />)}
                 </Bar>
@@ -387,28 +387,28 @@ export function Stats() {
 
       {/* 4 — Bullseye par club */}
       <section className="card p-5">
-        <h2 className="font-display text-lg mb-1">Bullseye par club</h2>
+        <h2 className="font-display text-lg mb-1">Bullseye by club</h2>
         <p className="text-sm text-ink/50 mb-4">
-          Centré sur ta moyenne : x = écart latéral, y = écart de carry. Le centre = coup parfait.
-          {" "}<span className="text-teal font-semibold">Bleu = dérive moyenne.</span>
+          Centered on your average: x = lateral offset, y = carry offset. Center = perfect shot.
+          {" "}<span className="text-teal font-semibold">Blue = average drift.</span>
         </p>
         <BullseyeChart aggs={aggs} />
       </section>
 
       {/* 5 — Pattern de dispersion (vue de dessus) */}
       <section className="card p-5">
-        <h2 className="font-display text-lg mb-1">Pattern de dispersion</h2>
+        <h2 className="font-display text-lg mb-1">Dispersion pattern</h2>
         <p className="text-sm text-ink/50 mb-3">
-          <span className="text-fairway font-semibold">vert ≤ 5 %</span> ·{" "}
-          <span className="text-gold font-semibold">orange 5–8 %</span> ·{" "}
-          <span className="text-terracotta font-semibold">rouge &gt; 8 %</span>{" "}
-          de la longueur.
+          <span className="text-fairway font-semibold">green ≤ 5%</span> ·{" "}
+          <span className="text-gold font-semibold">orange 5–8%</span> ·{" "}
+          <span className="text-terracotta font-semibold">red &gt; 8%</span>{" "}
+          of distance.
         </p>
         <div style={{ height: 760 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 8 }}>
               <CartesianGrid stroke="#dde7f3" />
-              <XAxis type="number" dataKey="x" name="écart" unit=" m" domain={[-xMax, xMax]} ticks={xTicks} interval={0} tick={{ ...tick, fontSize: 10 }} />
+              <XAxis type="number" dataKey="x" name="offset" unit=" m" domain={[-xMax, xMax]} ticks={xTicks} interval={0} tick={{ ...tick, fontSize: 10 }} />
               <YAxis type="number" dataKey="y" name="carry" unit=" m" domain={[yLo, yHi]} ticks={yTicks} interval={0} tick={tick} />
               <ZAxis range={[45, 45]} />
               <Customized component={DispersionZones} yHi={yHi} xMax={xMax} disp={DISP} dispWarn={DISP_WARN} />

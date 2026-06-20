@@ -8,9 +8,9 @@ export const CLUBS = [
 export type Club = (typeof CLUBS)[number];
 
 export const CLUB_LABELS: Record<Club, string> = {
-  Dr: "Driver", "3W": "Bois 3", "5W": "Bois 5", Hy: "Hybride",
-  "3i": "Fer 3", "4i": "Fer 4", "5i": "Fer 5", "6i": "Fer 6", "7i": "Fer 7",
-  "8i": "Fer 8", "9i": "Fer 9", PW: "Pitching", GW: "Gap", SW: "Sand", LW: "Lob",
+  Dr: "Driver", "3W": "3 Wood", "5W": "5 Wood", Hy: "Hybrid",
+  "3i": "3 Iron", "4i": "4 Iron", "5i": "5 Iron", "6i": "6 Iron", "7i": "7 Iron",
+  "8i": "8 Iron", "9i": "9 Iron", PW: "Pitching wedge", GW: "Gap wedge", SW: "Sand wedge", LW: "Lob wedge",
 };
 
 /**

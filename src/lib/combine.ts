@@ -68,10 +68,10 @@ export function combineScore(stations: CombineStationResult[]): number {
 
 export function gradeLabel(score: number): { label: string; color: string } {
   if (score >= 85) return { label: "Tour", color: "text-gold" };
-  if (score >= 70) return { label: "Élite", color: "text-fairway" };
-  if (score >= 55) return { label: "Avancé", color: "text-teal" };
-  if (score >= 40) return { label: "Intermédiaire", color: "text-ink" };
-  return { label: "En progression", color: "text-ink/60" };
+  if (score >= 70) return { label: "Elite", color: "text-fairway" };
+  if (score >= 55) return { label: "Advanced", color: "text-teal" };
+  if (score >= 40) return { label: "Intermediate", color: "text-ink" };
+  return { label: "Improving", color: "text-ink/60" };
 }
 
 /** Suggested club for a station, to guide the player (informational only). */
@@ -85,5 +85,5 @@ export function suggestedClubs(t: StationTarget): string {
   if (t <= 125) return "7i / 8i";
   if (t <= 145) return "6i / 7i";
   if (t <= 165) return "5i / 6i";
-  return "Bois / hybride / fer long";
+  return "Wood / hybrid / long iron";
 }
