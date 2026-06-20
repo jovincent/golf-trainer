@@ -5,14 +5,8 @@ over Bluetooth, computes ball flight with ballistic models, tracks your progress
 offers guided drills — all stored locally, no cloud, no account.
 
 > ### 🛠️ A fully vibe-coded app
-> This is a **fully vibe-coded** project — built end to end by chatting with an AI,
-> not by a studio or a polished product team. It's shared in the hope it helps
-> **fellow golfers take a different approach to their training**: visualize dispersion,
-> understand club gapping, run a standardized test, and actually *see* progress over time.
->
-> Treat it as a **basic starting point** — a foundation to fork, tweak and build on for
-> your own practice, not a finished commercial product. If it sparks ideas for how you
-> train, it's done its job. No warranty, no support — just a useful base to start from. ⛳
+> Built end to end by chatting with an AI. Treat it as a **starting point** to fork and
+> build on for your own practice, not a finished product. No warranty, no support. ⛳
 
 > **Browser required: desktop Chrome or Edge** (or Chrome on Android).
 > The Bluetooth connection relies on the Web Bluetooth API, which Safari/iOS/Firefox don't support.
