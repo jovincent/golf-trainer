@@ -23,9 +23,9 @@ function HeroStats({ shot }: { shot: Shot }) {
   const off = shot.offlineM;
   const offDir = Math.abs(off) < 1 ? "m · straight" : `m · ${off < 0 ? "left" : "right"}`;
   return (
-    <section className="card p-4">
+    <section className="card p-4 h-full">
       <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <HeroStat label="Club speed" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
         <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" cls="text-teal" />
         <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} cls={ratingColor(c.smash)} />
@@ -83,11 +83,13 @@ export function LiveSession() {
 
       {last ? (
         <>
-          <HeroStats shot={last} />
-          <section className="card p-4">
-            <ShotTrajectory3D shots={shots} />
-            <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
-          </section>
+          <div className="grid lg:grid-cols-2 gap-4 items-stretch">
+            <section className="card p-4">
+              <ShotTrajectory3D shots={shots} />
+              <p className="text-[11px] text-ink/35 text-center mt-2">3D ball flight</p>
+            </section>
+            <HeroStats shot={last} />
+          </div>
           <ShotData shot={last} />
         </>
       ) : (
