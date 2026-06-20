@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Eraser } from "lucide-react";
 import type { Shot } from "../types";
 
 /**
@@ -94,11 +96,14 @@ const pathLen = (pts: P[]) =>
  *               the camera scale (longest shot).
  */
 export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
-  const shot = shots[0];
-  const ghosts = shots.slice(1, 6);
+  // "Clear" hides the currently shown trajectories; new shots reappear after.
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const visible = shots.filter((s) => !hidden.has(s.id));
+  const shot = visible[0];
+  const ghosts = visible.slice(1, 6);
 
   // Fixed session scale (NaN-safe: a bad value can't poison Math.max → NaN everywhere).
-  const totals = shots.map((s) => s.total).filter(Number.isFinite);
+  const totals = visible.map((s) => s.total).filter(Number.isFinite);
   const maxTotal = totals.length ? Math.max(...totals) : 0;
   const Yland = Math.max(60, maxTotal * 1.06);
   const RAIL = Math.max(12, Z_OUT * Yland * 1.4); // distance-grid half-width (just past the 8 % band)
@@ -120,13 +125,31 @@ export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
   const len = fp ? pathLen(fp.air) : 0;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 420 }}>
+    <div className="relative">
+      {visible.length > 0 && (
+        <button
+          onClick={() => setHidden(new Set(shots.map((s) => s.id)))}
+          title="Clear the displayed trajectories"
+          className="absolute top-2 right-2 z-10 inline-flex items-center gap-1 text-[11px] font-semibold
+                     text-ink/60 bg-surface/85 hover:bg-surface rounded-lg px-2 py-1 border border-black/5 transition"
+        >
+          <Eraser className="w-3 h-3" /> Clear
+        </button>
+      )}
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 420 }}>
       <defs>
+        <linearGradient id="sky3d" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#aecdef" />
+          <stop offset="1" stopColor="#e3edfb" />
+        </linearGradient>
         <linearGradient id="trail3d" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2E5DA4" />
-          <stop offset="1" stopColor="#6f9bd6" />
+          <stop offset="0" stopColor="#16294D" />
+          <stop offset="1" stopColor="#2E5DA4" />
         </linearGradient>
       </defs>
+
+      {/* sky-blue backdrop (system blue palette) */}
+      <rect x={0} y={0} width={W} height={H} rx={14} fill="url(#sky3d)" />
 
       {/* dispersion corridors */}
       <polygon points={band(in5L, out8L)} fill="#e8c074" fillOpacity={0.4} />
@@ -181,6 +204,7 @@ export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
           Hit a ball to see the 3D flight
         </text>
       )}
-    </svg>
+      </svg>
+    </div>
   );
 }

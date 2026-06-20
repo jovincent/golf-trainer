@@ -12,7 +12,7 @@ function HeroStat({ label, value, sub, cls }: { label: string; value: string; su
   return (
     <div className="bg-panel rounded-xl px-3 py-3 text-center">
       <div className="text-[10px] uppercase tracking-wide text-ink/45">{label}</div>
-      <div className={"metric text-2xl sm:text-3xl font-bold leading-tight " + (cls ?? "text-ink")}>{value}</div>
+      <div className={"metric text-xl sm:text-2xl font-bold leading-tight " + (cls ?? "text-ink")}>{value}</div>
       {sub && <div className="text-[11px] text-ink/40 mt-0.5">{sub}</div>}
     </div>
   );
@@ -25,11 +25,15 @@ function HeroStats({ shot }: { shot: Shot }) {
   return (
     <section className="card p-4 h-full">
       <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <HeroStat label="Club speed" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
         <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" cls="text-teal" />
         <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} cls={ratingColor(c.smash)} />
-        <HeroStat label="Distance" value={shot.carry.toFixed(0)} sub={`carry · ${shot.total.toFixed(0)} m total`} cls="text-royal" />
+        <HeroStat label="Carry" value={shot.carry.toFixed(0)} sub="m" cls="text-royal" />
+        <HeroStat label="Total" value={shot.total.toFixed(0)} sub="m" />
+        <HeroStat label="Apex" value={shot.apex.toFixed(0)} sub="m" />
+        <HeroStat label="Launch" value={shot.launchAngle.toFixed(1)} sub="°" cls={ratingColor(c.launch)} />
+        <HeroStat label="Backspin" value={shot.backSpin.toFixed(0)} sub="rpm" cls={ratingColor(c.spin)} />
         <HeroStat label="Offline" value={Math.abs(off).toFixed(1)} sub={offDir}
           cls={Math.abs(off) > 12 ? "text-terracotta" : "text-ink"} />
       </div>
