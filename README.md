@@ -4,9 +4,9 @@ A web golf-training app built around the **Garmin Approach R10**. It captures sh
 over Bluetooth, computes ball flight with ballistic models, tracks your progress and
 offers guided drills — all stored locally, no cloud, no account.
 
-> ### 🛠️ A fully vibe-coded app
-> Built end to end by chatting with an AI. Treat it as a **starting point** to fork and
-> build on for your own practice, not a finished product. No warranty, no support. ⛳
+> ### 🛠️ A mostly vibe-coded app
+> Treat it as a **starting point** to fork and
+> build on for your own practice
 
 > **Browser required: desktop Chrome or Edge** (or Chrome on Android).
 > The Bluetooth connection relies on the Web Bluetooth API, which Safari/iOS/Firefox don't support.
