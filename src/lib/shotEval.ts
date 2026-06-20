@@ -20,8 +20,12 @@ interface Ideal {
 const IDEAL: Record<Club, Ideal> = {
   Dr:   { launch: [12, 16],  spin: [2000, 3000],  attack: [0, 5],      smash: [1.41, 1.45] },
   "3W": { launch: [10, 15],  spin: [2800, 3800],  attack: [-3, 1],     smash: [1.38, 1.42] },
+  "4W": { launch: [10, 15],  spin: [2900, 3900],  attack: [-3, 1],     smash: [1.37, 1.41] },
   "5W": { launch: [11, 16],  spin: [3200, 4200],  attack: [-3.5, 0],   smash: [1.37, 1.41] },
+  "7W": { launch: [11, 16],  spin: [3300, 4300],  attack: [-3.5, 0],   smash: [1.36, 1.40] },
   Hy:   { launch: [12, 17],  spin: [3500, 4600],  attack: [-4, -1],    smash: [1.36, 1.40] },
+  "1i": { launch: [11, 16],  spin: [3000, 4100],  attack: [-3, 0],     smash: [1.35, 1.39] },
+  "2i": { launch: [12, 17],  spin: [3400, 4500],  attack: [-3.5, -1],  smash: [1.34, 1.38] },
   "3i": { launch: [13, 18],  spin: [3800, 4900],  attack: [-4, -1.5],  smash: [1.34, 1.38] },
   "4i": { launch: [14, 19],  spin: [4200, 5300],  attack: [-4, -2],    smash: [1.33, 1.37] },
   "5i": { launch: [15, 20],  spin: [4600, 5800],  attack: [-4.5, -2],  smash: [1.31, 1.35] },

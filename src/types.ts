@@ -2,14 +2,15 @@
 
 /** Clubs, ordered long → short, for gapping. */
 export const CLUBS = [
-  "Dr", "3W", "5W", "Hy", "3i", "4i", "5i", "6i", "7i", "8i", "9i",
+  "Dr", "3W", "4W", "5W", "7W", "Hy",
+  "1i", "2i", "3i", "4i", "5i", "6i", "7i", "8i", "9i",
   "PW", "GW", "SW", "LW",
 ] as const;
 export type Club = (typeof CLUBS)[number];
 
 export const CLUB_LABELS: Record<Club, string> = {
-  Dr: "Driver", "3W": "3 Wood", "5W": "5 Wood", Hy: "Hybrid",
-  "3i": "3 Iron", "4i": "4 Iron", "5i": "5 Iron", "6i": "6 Iron", "7i": "7 Iron",
+  Dr: "Driver", "3W": "3 Wood", "4W": "4 Wood", "5W": "5 Wood", "7W": "7 Wood", Hy: "Hybrid",
+  "1i": "1 Iron", "2i": "2 Iron", "3i": "3 Iron", "4i": "4 Iron", "5i": "5 Iron", "6i": "6 Iron", "7i": "7 Iron",
   "8i": "8 Iron", "9i": "9 Iron", PW: "Pitching wedge", GW: "Gap wedge", SW: "Sand wedge", LW: "Lob wedge",
 };
 

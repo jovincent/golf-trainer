@@ -39,7 +39,8 @@ export function setFlightModel(m: FlightModel) {
 const GLOBAL_T = 0.926;
 const _ratio = 0.9 / GLOBAL_T; // ≈ 0.972
 const TRIM_T: Record<Club, number> = {
-  Dr: 1.0 * _ratio,   "3W": 1.05 * _ratio, "5W": 1.05 * _ratio, Hy: 1.0,
+  Dr: 1.0 * _ratio,   "3W": 1.05 * _ratio, "4W": 1.05 * _ratio, "5W": 1.05 * _ratio, "7W": 1.04 * _ratio, Hy: 1.0,
+  "1i": 0.98 * _ratio, "2i": 0.97 * _ratio,
   "3i": 0.96 * _ratio, "4i": 0.95 * _ratio, "5i": 0.93 * _ratio, "6i": 0.92 * _ratio,
   "7i": 0.92 * _ratio, "8i": 0.92 * _ratio, "9i": 0.92 * _ratio,
   PW:   0.93 * _ratio, GW:  0.93 * _ratio,  SW:  0.93 * _ratio,  LW:  0.93 * _ratio,

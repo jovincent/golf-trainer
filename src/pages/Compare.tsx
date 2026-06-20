@@ -185,8 +185,8 @@ function buildRadarScores(aggs: ClubAgg[], commonClubs: Set<string>): Record<Rad
 
 // ─── Club order ───────────────────────────────────────────────────────────────
 const CLUB_ORDER = [
-  "Dr","3W","5W","7W","2H","3H","4H","5H",
-  "2i","3i","4i","5i","6i","7i","8i","9i","PW","GW","SW","LW",
+  "Dr","3W","4W","5W","7W","Hy","2H","3H","4H","5H",
+  "1i","2i","3i","4i","5i","6i","7i","8i","9i","PW","GW","SW","LW",
 ];
 const sortClubs = (clubs: string[]) =>
   [...clubs].sort((a, b) => {
