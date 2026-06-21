@@ -96,8 +96,8 @@ const hit = async (club, n) => {
   }
 };
 await hit("7i", 3);
-await hit("Dr", 3);
 await hit("PW", 2);
+await hit("Dr", 3); // end on a driver so the hero "Last shot" is a Dr
 await sleep(600);
 await shot("session.png");
 
