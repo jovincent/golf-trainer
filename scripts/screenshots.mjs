@@ -51,18 +51,21 @@ const shotCard = async (heading, file) => {
 // --- Stats (rich, real data): full tab + the bullseye and dispersion cards ---
 await clickTab("^Stats");
 await shot("stats.png");
+// Bullseye — select the 7-iron before capturing.
+const bullseye = page.locator("section").filter({ has: page.getByRole("heading", { name: "Bullseye by club" }) });
+await bullseye.scrollIntoViewIfNeeded();
+await bullseye.getByRole("button", { name: "7i", exact: true }).click();
+await sleep(400);
 await shotCard("Bullseye by club", "bullseye.png");
 await shotCard("Dispersion pattern", "dispersion.png");
 
-// --- History: collapsed list, then one session expanded ---
+// --- History: one session expanded into its shot table ---
 await clickTab("^History");
-await shot("history.png");
 // Expand a session with a handful of shots so the shot table reads cleanly.
 const sessionToggle = page.locator(".card > button").filter({ hasText: /ball/ });
 await sessionToggle.nth(1).click();
 await sleep(700);
 await shot("history-expanded.png");
-await sessionToggle.nth(1).click(); // collapse again
 
 // --- Compare (spider charts) — Jonathan vs Boubou only ---
 await clickTab("^Compare");

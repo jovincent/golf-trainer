@@ -25,11 +25,8 @@ offers guided drills — all stored locally, no cloud, no account.
 | ![Bullseye by club](docs/screenshots/bullseye.png) | ![Dispersion pattern](docs/screenshots/dispersion.png) |
 
 <p align="center">
-  <img src="docs/screenshots/history.png" alt="History tab — sessions, club filter, sorting" width="70%">
-  <br><em>History — every session, filterable by club and sortable by carry / speed / smash…</em>
-  <br><br>
   <img src="docs/screenshots/history-expanded.png" alt="History — a session expanded into its shot table" width="70%">
-  <br><em>…and any session expands into its full per-shot table.</em>
+  <br><em>History — every session, filterable by club and sortable by carry / speed / smash; each expands into its full per-shot table.</em>
 </p>
 
 ---
