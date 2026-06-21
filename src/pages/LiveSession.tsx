@@ -7,22 +7,6 @@ import { evaluateShot, ratingColor, metricQuality, qualityColor } from "../lib/s
 import { useUnits } from "../lib/useUnits";
 import { CLUB_LABELS, type Shot } from "../types";
 
-// Compact metric ⇄ imperial toggle shown on the hero card.
-function UnitToggle() {
-  const units = useStore((s) => s.units);
-  const setUnits = useStore((s) => s.setUnits);
-  return (
-    <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-black/10 text-[10px] font-bold">
-      {(["metric", "imperial"] as const).map((u) => (
-        <button key={u} onClick={() => setUnits(u)}
-          className={"px-2 py-0.5 transition " + (units === u ? "bg-ink text-white" : "text-ink/45 hover:bg-ink/5")}>
-          {u === "metric" ? "m" : "yd"}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 // Big at-a-glance numbers for the shot just hit. `color` (when set) is an inline
 // CSS colour from the red→blue quality ramp; otherwise the value is neutral.
 function HeroStat({ label, value, sub, cls, color }: {
@@ -47,10 +31,7 @@ function HeroStats({ shot }: { shot: Shot }) {
   const q = (m: "smash" | "launch" | "spin" | "offline") => qualityColor(metricQuality(shot, m));
   return (
     <section className="card p-4 h-full">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Last shot · {shot.club}</h3>
-        <UnitToggle />
-      </div>
+      <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
       <div className="grid grid-cols-3 gap-2">
         <HeroStat label="Club speed" value={U.s(shot.clubSpeed)} sub={U.speedUnit} />
         <HeroStat label="Ball speed" value={U.s(shot.ballSpeed)} sub={U.speedUnit} />

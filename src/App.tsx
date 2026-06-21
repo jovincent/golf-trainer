@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Activity, Calendar, Gauge, LayoutDashboard, Flag, Target, Users, UserCircle, ChevronDown, Plus, Trash2, Pencil, Star } from "lucide-react";
 import { ConnectionBar } from "./components/ConnectionBar";
+import { UnitSwitch } from "./components/UnitSwitch";
 import { LiveSession } from "./pages/LiveSession";
 import { Course } from "./pages/Course";
 import { Practice } from "./pages/Practice";
@@ -182,7 +183,8 @@ export function App() {
             Flight<span className="serif text-royal">Lab</span>
           </h1>
 
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-2">
+            <UnitSwitch />
             <ProfileSelector />
             <div className="text-right pl-2">
               <div className="metric text-sm font-semibold">{totalShots}</div>

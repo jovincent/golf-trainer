@@ -8,9 +8,10 @@ export const UNITS_KEY = "fairway-lab/units";
 const M_TO_YD = 1.09361;     // metres → yards
 const KMH_TO_MPH = 0.621371; // km/h → mph
 
+// Default is imperial (yards / mph); only an explicit "metric" choice opts out.
 export function readStoredUnits(): Units {
-  try { return localStorage.getItem(UNITS_KEY) === "imperial" ? "imperial" : "metric"; }
-  catch { return "metric"; }
+  try { return localStorage.getItem(UNITS_KEY) === "metric" ? "metric" : "imperial"; }
+  catch { return "imperial"; }
 }
 
 export const distUnit  = (u: Units) => (u === "imperial" ? "yd" : "m");
