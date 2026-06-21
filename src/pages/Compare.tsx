@@ -154,15 +154,46 @@ async function fetchAggs(profileId: string): Promise<ClubAgg[]> {
 }
 
 // ─── Radar normalization ──────────────────────────────────────────────────────
+// Distance = 7-iron carry, Speed = driver club-head speed (single-club metrics);
+// Smash, Consistency and Accuracy are averaged across the shared clubs. Accuracy
+// is a mean lateral-dispersion percentage (offline σ relative to carry).
 const RADAR_AXES = [
-  { key: "distance",   label: "Distance",    min: 60,  max: 220, invert: false, unit: " m" },
-  { key: "smash",      label: "Smash",       min: 1.10, max: 1.52, invert: false, unit: "" },
-  { key: "vitesse",    label: "Speed",     min: 60,  max: 210, invert: false, unit: " km/h" },
-  { key: "regularite", label: "Consistency",  min: 0,   max: 26,  invert: true,  unit: " m σ" },
-  { key: "precision",  label: "Accuracy",   min: 0,   max: 20,  invert: true,  unit: " m σ" },
+  { key: "distance",   label: "7i carry",     min: 70,   max: 170,  invert: false, unit: " m",    dp: 0 },
+  { key: "smash",      label: "Smash",        min: 1.10, max: 1.52, invert: false, unit: "",      dp: 2 },
+  { key: "vitesse",    label: "Driver speed", min: 100,  max: 175,  invert: false, unit: " km/h", dp: 0 },
+  { key: "regularite", label: "Consistency",  min: 0,    max: 26,   invert: true,  unit: " m σ",  dp: 1 },
+  { key: "precision",  label: "Accuracy",     min: 0,    max: 14,   invert: true,  unit: " %",    dp: 1 },
 ] as const;
 
 type RadarKey = (typeof RADAR_AXES)[number]["key"];
+
+/** Mean club-head speed (km/h) for a club's clean shots; falls back to ball/smash. */
+function clubSpeedOf(a: ClubAgg): number {
+  if (a.clean.length) return a.clean.reduce((s, sh) => s + sh.clubSpeed, 0) / a.clean.length;
+  return a.smash ? a.ball / a.smash : 0;
+}
+
+/**
+ * Raw value for one radar dimension. `distance` and `vitesse` read a single club
+ * (7i / Dr); the rest average over the shared clubs. Returns null when the data
+ * for that dimension is missing (e.g. the player has no 7-iron shots).
+ */
+function rawMetric(key: RadarKey, aggs: ClubAgg[], commonClubs: Set<string>): number | null {
+  const filtered = commonClubs.size ? aggs.filter((a) => commonClubs.has(a.club as string)) : aggs;
+  const avg = (fn: (a: ClubAgg) => number) =>
+    filtered.length ? filtered.reduce((s, a) => s + fn(a), 0) / filtered.length : null;
+  const one = (club: string, fn: (a: ClubAgg) => number) => {
+    const a = aggs.find((x) => (x.club as string) === club);
+    return a ? fn(a) : null;
+  };
+  switch (key) {
+    case "distance":   return one("7i", (a) => a.carry);
+    case "smash":      return avg((a) => a.smash);
+    case "vitesse":    return one("Dr", clubSpeedOf);
+    case "regularite": return avg((a) => a.carrySd);
+    case "precision":  return avg((a) => (a.carry > 0 ? (a.offlineSd / a.carry) * 100 : 0));
+  }
+}
 
 function normalize(val: number, min: number, max: number, invert: boolean): number {
   const pct = (val - min) / (max - min);
@@ -171,16 +202,13 @@ function normalize(val: number, min: number, max: number, invert: boolean): numb
 }
 
 function buildRadarScores(aggs: ClubAgg[], commonClubs: Set<string>): Record<RadarKey, number> | null {
-  const filtered = commonClubs.size ? aggs.filter((a) => commonClubs.has(a.club as string)) : aggs;
-  if (!filtered.length) return null;
-  const avg = (fn: (a: ClubAgg) => number) => filtered.reduce((s, a) => s + fn(a), 0) / filtered.length;
-  return {
-    distance:   normalize(avg((a) => a.carry),     60,  220, false),
-    smash:      normalize(avg((a) => a.smash),     1.10, 1.52, false),
-    vitesse:    normalize(avg((a) => a.ball),      60,  210, false),
-    regularite: normalize(avg((a) => a.carrySd),   0,   26, true),
-    precision:  normalize(avg((a) => a.offlineSd), 0,   20, true),
-  };
+  if (!aggs.length) return null;
+  const out = {} as Record<RadarKey, number>;
+  for (const axis of RADAR_AXES) {
+    const raw = rawMetric(axis.key, aggs, commonClubs);
+    out[axis.key] = raw == null ? 0 : normalize(raw, axis.min, axis.max, axis.invert);
+  }
+  return out;
 }
 
 // ─── Club order ───────────────────────────────────────────────────────────────
@@ -218,19 +246,9 @@ function RadarComparison({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: 
   const rawData = RADAR_AXES.map((axis) => {
     const entry: Record<string, string> = { subject: axis.label };
     profiles.forEach((p) => {
-      const all  = aggsMap.get(p.id) ?? [];
-      const aggs = commonClubs.size ? all.filter((a) => commonClubs.has(a.club as string)) : all;
-      if (!aggs.length) return;
-      const avg = (fn: (a: ClubAgg) => number) => aggs.reduce((s, a) => s + fn(a), 0) / aggs.length;
-      let raw: number;
-      switch (axis.key) {
-        case "distance":   raw = avg((a) => a.carry); break;
-        case "smash":      raw = avg((a) => a.smash); break;
-        case "vitesse":    raw = avg((a) => a.ball);  break;
-        case "regularite": raw = avg((a) => a.carrySd); break;
-        case "precision":  raw = avg((a) => a.offlineSd); break;
-      }
-      entry[p.name] = raw!.toFixed(axis.key === "smash" ? 2 : 1) + axis.unit;
+      const raw = rawMetric(axis.key, aggsMap.get(p.id) ?? [], commonClubs);
+      if (raw == null) return;
+      entry[p.name] = raw.toFixed(axis.dp) + axis.unit;
     });
     return entry;
   });
@@ -245,7 +263,8 @@ function RadarComparison({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: 
     <section className="card p-5">
       <h3 className="font-display text-base mb-0.5">Overall profile</h3>
       <p className="text-sm text-ink/45 mb-1">
-        0–100 score per dimension · shared clubs:&nbsp;
+        0–100 per dimension · 7i carry &amp; driver club-head speed · smash, consistency &amp;
+        accuracy (mean drift&nbsp;%) over shared clubs:&nbsp;
         <span className="metric font-semibold text-ink/60">{sortClubs([...commonClubs]).join(" · ") || "—"}</span>
       </p>
       <div className="flex flex-col sm:flex-row items-center gap-4 mt-3">
