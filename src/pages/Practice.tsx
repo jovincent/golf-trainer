@@ -4,6 +4,7 @@ import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { applyShot, distToPin, type Hole } from "../lib/course";
+import { useUnits } from "../lib/useUnits";
 
 interface Attempt { rx: number; ry: number; prox: number; club: string; dist: number }
 
@@ -14,6 +15,7 @@ const practiceHole = (D: number): Hole => ({
 });
 
 export function Practice() {
+  const U = useUnits();
   const { adapterId, conn, simHit, connect } = useStore();
   const sessionShots = useStore((s) => s.current?.shots);
   const lastShot = sessionShots?.[0];
@@ -72,7 +74,7 @@ export function Practice() {
           {challenge === null ? (
             <>
               <label className="grid gap-1 text-sm text-ink/60">
-                <span className="flex justify-between">Target distance <b className="metric">{target} m</b></span>
+                <span className="flex justify-between">Target distance <b className="metric">{U.fd(target)}</b></span>
                 <input type="range" min={40} max={200} step={5} value={target} disabled={random}
                   onChange={(e) => setTarget(Number(e.target.value))} className="accent-fairway disabled:opacity-40" />
               </label>
@@ -90,9 +92,9 @@ export function Practice() {
 
           <div className="grid grid-cols-2 gap-2">
             <Tile label="Balls" value={`${shown.length}`} />
-            <Tile label="Closest" value={proxArr.length ? `${best.toFixed(1)} m` : "–"} accent="fairway" />
-            <Tile label="Avg proximity" value={proxArr.length ? `${avg.toFixed(1)} m` : "–"} />
-            <Tile label="≤ 3 m" value={`${within3}/${shown.length}`} />
+            <Tile label="Closest" value={proxArr.length ? U.fd(best, 1) : "–"} accent="fairway" />
+            <Tile label="Avg proximity" value={proxArr.length ? U.fd(avg, 1) : "–"} />
+            <Tile label={`≤ ${U.fd(3)}`} value={`${within3}/${shown.length}`} />
             <Tile label="On green" value={`${onGreen}/${shown.length}`} accent="teal" />
             <Tile label="GIR %" value={shown.length ? `${Math.round((onGreen / shown.length) * 100)} %` : "–"} />
           </div>
@@ -117,7 +119,7 @@ export function Practice() {
               className="w-full inline-flex items-center justify-center gap-2
               bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition
               disabled:opacity-50 disabled:cursor-not-allowed">
-              <Target className="w-4 h-4" /> {clubArmed ? "Hit" : "Pick a club"} {random && clubArmed ? `(${target} m)` : ""}
+              <Target className="w-4 h-4" /> {clubArmed ? "Hit" : "Pick a club"} {random && clubArmed ? `(${U.fd(target)})` : ""}
             </button>
           ) : !challengeDone ? (
             <p className="text-sm text-ink/50">{clubArmed ? "Hit your ball — the R10 will send it." : "Pick a club before hitting."}</p>
@@ -143,7 +145,7 @@ export function Practice() {
         </section>
         <section className="card p-4">
           <DispersionTarget attempts={shown} />
-          <p className="text-[11px] text-ink/35 text-center mt-2">Target view · flag at center, rings at 3 / 6 / 8 m</p>
+          <p className="text-[11px] text-ink/35 text-center mt-2">Target view · flag at center, rings at {U.d(3)} / {U.d(6)} / {U.fd(8)}</p>
         </section>
       </div>
     </div>

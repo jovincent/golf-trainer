@@ -7,6 +7,7 @@ import { CLUBS, CLUB_LABELS, type Club, type Session, type Shot } from "../types
 import { ShareModal } from "../components/ShareModal";
 import { buildSessionShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
+import { useUnits } from "../lib/useUnits";
 
 export function History() {
   const { sessions, deleteSession, deleteShot, clearHistory, seedDemo } = useStore();
@@ -186,6 +187,7 @@ function ShotRow({ shot: s, badge, onUpdateClub, onDeleteShot, setHover }: {
   shot: Shot; badge: string;
   onUpdateClub: (club: Club) => void; onDeleteShot: () => void; setHover: (h: HoverState) => void;
 }) {
+  const U = useUnits();
   const absOff = Math.abs(s.offlineM);
   const offDir = absOff < 1 ? null : s.offlineM < 0 ? "← L" : "R →";
   const offRatio = absOff / Math.max(1, s.carry);
@@ -217,21 +219,21 @@ function ShotRow({ shot: s, badge, onUpdateClub, onDeleteShot, setHover }: {
       {/* Carry + total — same size, side by side */}
       <div className="flex items-start gap-3">
         <div className="flex flex-col leading-none">
-          <span className="metric text-2xl font-bold text-ink">{s.carry.toFixed(0)}</span>
-          <span className="text-[10px] text-ink/40">m carry</span>
+          <span className="metric text-2xl font-bold text-ink">{U.d(s.carry)}</span>
+          <span className="text-[10px] text-ink/40">{U.distUnit} carry</span>
         </div>
         <div className="flex flex-col leading-none">
-          <span className="metric text-2xl font-bold text-ink/60">{s.total.toFixed(0)}</span>
-          <span className="text-[10px] text-ink/40">m total</span>
+          <span className="metric text-2xl font-bold text-ink/60">{U.d(s.total)}</span>
+          <span className="text-[10px] text-ink/40">{U.distUnit} total</span>
         </div>
       </div>
 
       {/* Secondary metrics — 3×2 grid */}
       <div className="grid grid-cols-3 gap-x-3 gap-y-1.5">
-        <Metric label="Club spd"  value={`${s.clubSpeed.toFixed(0)} km/h`} />
-        <Metric label="Ball spd" value={`${s.ballSpeed.toFixed(0)} km/h`} />
+        <Metric label="Club spd"  value={`${U.s(s.clubSpeed)} ${U.speedUnit}`} />
+        <Metric label="Ball spd" value={`${U.s(s.ballSpeed)} ${U.speedUnit}`} />
         <Metric label="Smash"    value={s.smashFactor.toFixed(2)} />
-        <Metric label="Apex"     value={`${s.apex.toFixed(0)} m`} />
+        <Metric label="Apex"     value={`${U.d(s.apex)} ${U.distUnit}`} />
         <Metric label="Backspin" value={`${(s.backSpin ?? 0).toFixed(0)} rpm`} />
         <Metric label="Launch" value={`${(s.launchAngle ?? 0).toFixed(1)}°`} />
       </div>
@@ -239,7 +241,7 @@ function ShotRow({ shot: s, badge, onUpdateClub, onDeleteShot, setHover }: {
       {/* Offline badge */}
       <div className={`flex flex-col items-center justify-center rounded-xl px-2 py-1.5 self-center ${offBg}`}>
         <span className={`metric text-base font-bold leading-none ${offColor}`}>
-          {absOff < 1 ? "—" : `${absOff.toFixed(1)} m`}
+          {absOff < 1 ? "—" : `${U.d(absOff, 1)} ${U.distUnit}`}
         </span>
         <span className={`text-[10px] font-semibold mt-0.5 ${offColor}`}>{offDir ?? "straight"}</span>
       </div>
@@ -257,6 +259,7 @@ function ShotRow({ shot: s, badge, onUpdateClub, onDeleteShot, setHover }: {
 }
 
 function PerClubSummary({ shots }: { shots: Shot[] }) {
+  const U = useUnits();
   return (
     <div className="px-4 py-3 border-b border-black/5 bg-panel/20">
       <div className="text-[10px] uppercase tracking-widest text-ink/40 font-semibold mb-2">Avg carry / total by club</div>
@@ -264,8 +267,8 @@ function PerClubSummary({ shots }: { shots: Shot[] }) {
         {carryByClub(shots).map(({ club, n, avg, avgTotal }) => (
           <div key={club} className="flex items-baseline gap-1.5 rounded-lg bg-surface border border-black/5 px-2.5 py-1.5">
             <span className="text-sm font-bold text-ink/80 font-display">{club}</span>
-            <span className="metric text-sm font-semibold text-ink">{avg.toFixed(0)}</span>
-            <span className="metric text-xs text-ink/45">/ {avgTotal.toFixed(0)} m</span>
+            <span className="metric text-sm font-semibold text-ink">{U.d(avg)}</span>
+            <span className="metric text-xs text-ink/45">/ {U.d(avgTotal)} {U.distUnit}</span>
             <span className="text-[10px] text-ink/35">×{n}</span>
           </div>
         ))}
@@ -385,16 +388,23 @@ function SessionRow({ session, onShare, onDelete, onDeleteShot }: {
 
 // ── Hover popover (full detail) ───────────────────────────────────────────────
 function ShotPopover({ shot, x, y }: { shot: Shot; x: number; y: number }) {
+  const U = useUnits();
   const num = (v: number | undefined, dp = 1, unit = "") => (v == null ? "—" : `${v.toFixed(dp)}${unit}`);
   const lr = (v: number | undefined, dp = 1, unit = "") =>
     v == null ? "—" : `${Math.abs(v).toFixed(dp)}${unit}${v < 0 ? " L" : " R"}`;
+  // Distance/speed helpers that convert to the active display unit, preserving the
+  // "—" / "L · R" formatting of the raw helpers above.
+  const dist = (v: number | undefined, dp = 1) => (v == null ? "—" : `${U.d(v, dp)} ${U.distUnit}`);
+  const distLr = (v: number | undefined, dp = 1) =>
+    v == null ? "—" : `${U.d(Math.abs(v), dp)} ${U.distUnit}${v < 0 ? " L" : " R"}`;
+  const spd = (v: number | undefined, dp = 1) => (v == null ? "—" : `${U.s(v, dp)} ${U.speedUnit}`);
   const spinTotal = Math.hypot(shot.backSpin ?? 0, shot.sideSpin ?? 0);
 
   const rows: Array<[string, string]> = [
     ["Date", new Date(shot.ts).toLocaleString("en-US")],
     ["Club", shot.club],
-    ["Ball speed", num(shot.ballSpeed, 1, " km/h")],
-    ["Club speed", num(shot.clubSpeed, 1, " km/h")],
+    ["Ball speed", spd(shot.ballSpeed)],
+    ["Club speed", spd(shot.clubSpeed)],
     ["Smash factor", num(shot.smashFactor, 2)],
     ["Launch angle", num(shot.launchAngle, 1, "°")],
     ["Launch direction", lr(shot.launchDir, 1, "°")],
@@ -406,11 +416,11 @@ function ShotPopover({ shot, x, y }: { shot: Shot; x: number; y: number }) {
     ["Sidespin", lr(shot.sideSpin, 0, " rpm")],
     ["Total spin", `${spinTotal.toFixed(0)} rpm`],
     ["Spin axis", lr(shot.spinAxis, 1, "°")],
-    ["Carry", num(shot.carry, 1, " m")],
-    ["Total", num(shot.total, 1, " m")],
-    ["Apex", num(shot.apex, 1, " m")],
-    ["Total deviation", lr(shot.offlineM, 1, " m")],
-    ["Carry deviation", lr(shot.carryDeviation, 1, " m")],
+    ["Carry", dist(shot.carry)],
+    ["Total", dist(shot.total)],
+    ["Apex", dist(shot.apex)],
+    ["Total deviation", distLr(shot.offlineM)],
+    ["Carry deviation", distLr(shot.carryDeviation)],
     ["Source", shot.sim ? "Simulator" : "Garmin R10"],
   ];
 

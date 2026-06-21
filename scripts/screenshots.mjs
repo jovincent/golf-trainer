@@ -24,8 +24,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const browser = await chromium.launch({ executablePath: EXEC });
 const page = await browser.newPage({ viewport: { width: 1340, height: 1000 }, deviceScaleFactor: 2 });
 
-// Pin the profile that has real data before the app boots.
+// Pin the profile that has real data, and use imperial (yards/mph), before boot.
 await page.addInitScript((id) => localStorage.setItem("fairway-lab/active-profile", id), PROFILE);
+await page.addInitScript(() => localStorage.setItem("fairway-lab/units", "imperial"));
 await page.goto(BASE, { waitUntil: "networkidle" });
 await sleep(1200);
 

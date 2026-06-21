@@ -6,15 +6,19 @@ import { api } from "../lib/api";
 import { ShareModal } from "../components/ShareModal";
 import { buildCombineShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
+import { useUnits } from "../lib/useUnits";
 import {
   STATIONS, BALLS_PER_STATION, TOTAL_BALLS,
-  scoreShot, combineScore, gradeLabel, stationLabel, suggestedClubs,
-  type CombineResult, type CombineStationResult,
+  scoreShot, combineScore, gradeLabel, suggestedClubs,
+  type StationTarget, type CombineResult, type CombineStationResult,
 } from "../lib/combine";
 
 type Phase = "idle" | "running" | "done";
 
 export function Combine() {
+  const U = useUnits();
+  // Targets are defined in metres; display them converted with the active label.
+  const stationLbl = (t: StationTarget) => (t === "driver" ? "Driver" : U.fd(t));
   const { adapterId, conn, simHit, connect } = useStore();
   const lastShot = useStore((s) => s.current?.shots[0]);
   const clubArmed = useStore((s) => s.clubArmed);
@@ -108,7 +112,7 @@ export function Combine() {
           </h2>
           <p className="text-sm text-ink/60 leading-relaxed">
             Standardized test of <b>{TOTAL_BALLS} balls</b> : {BALLS_PER_STATION} balls on each of the{" "}
-            {STATIONS.length} targets ({STATIONS.filter((s) => s !== "driver").map(String).join(", ")} m, then driver).
+            {STATIONS.length} targets ({STATIONS.filter((s) => s !== "driver").map((s) => U.d(s as number)).join(", ")} {U.distUnit}, then driver).
             Each ball is scored 0 to 100 by accuracy. The final score is comparable between players
             and across tests — repeat it monthly to track your progress.
           </p>
@@ -195,7 +199,7 @@ export function Combine() {
             <div className="bg-fairway/10 rounded-xl px-4 py-3 grid gap-1">
               <div className="text-[10px] uppercase tracking-wide text-fairway/70">Current target</div>
               <div className="flex items-baseline gap-2">
-                <span className="metric text-3xl font-bold text-fairway">{stationLabel(target)}</span>
+                <span className="metric text-3xl font-bold text-fairway">{stationLbl(target)}</span>
                 <span className="text-sm text-fairway/70">ball {ballInStation + 1}/{BALLS_PER_STATION}</span>
               </div>
               <div className="text-xs text-ink/50">Suggested clubs : {suggestedClubs(target)}</div>
@@ -227,7 +231,7 @@ export function Combine() {
               <button onClick={simHit} disabled={!clubArmed}
                 className="w-full inline-flex items-center justify-center gap-2 bg-ink hover:bg-ink/90 text-white
                 font-semibold rounded-xl px-5 py-3 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <Target className="w-4 h-4" /> {clubArmed ? `Hit (${stationLabel(target)})` : "Pick a club"}
+                <Target className="w-4 h-4" /> {clubArmed ? `Hit (${stationLbl(target)})` : "Pick a club"}
               </button>
             ) : connected ? (
               <p className="text-sm text-ink/50">{clubArmed ? "Hit your ball — the R10 will send it." : "Pick a club before hitting."}</p>
@@ -266,13 +270,13 @@ export function Combine() {
               <div key={i} className={"flex items-center gap-3 rounded-xl px-4 py-2.5 " +
                 (active ? "bg-fairway/10 ring-1 ring-fairway/30" : st ? "bg-panel" : "bg-panel/40")}>
                 <span className={"metric text-sm font-semibold w-16 " + (active ? "text-fairway" : "text-ink/70")}>
-                  {stationLabel(t)}
+                  {stationLbl(t)}
                 </span>
                 <div className="flex gap-1.5">
                   {Array.from({ length: BALLS_PER_STATION }, (_, k) => {
                     const sh = st?.shots[k];
                     return (
-                      <span key={k} title={sh ? `${sh.club} · ${sh.carry.toFixed(0)} m carry · ${Math.abs(sh.offline).toFixed(1)} m ${sh.offline < 0 ? "L" : "R"}` : undefined}
+                      <span key={k} title={sh ? `${sh.club} · ${U.fd(sh.carry)} carry · ${U.fd(Math.abs(sh.offline), 1)} ${sh.offline < 0 ? "L" : "R"}` : undefined}
                         className={"metric text-xs rounded-md px-2 py-1 min-w-[34px] text-center " +
                           (sh == null ? "bg-ink/5 text-ink/25"
                             : sh.score >= 70 ? "bg-fairway/15 text-fairway font-semibold"
@@ -293,7 +297,7 @@ export function Combine() {
         </div>
         <p className="text-[11px] text-ink/35">
           Fixed targets: scored on combined distance + lateral error (0 pts at 25% error).
-          Driver: 100 pts within a ±10 m corridor, −4 pts per metre beyond.
+          Driver: 100 pts within a ±{U.fd(10)} corridor, with points dropping off beyond it.
         </p>
       </section>
     </div>

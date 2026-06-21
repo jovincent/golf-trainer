@@ -8,6 +8,7 @@ import { CLUBS } from "./types";
 import { api } from "./lib/api";
 import { playSuccess, playError } from "./lib/sounds";
 import { applyFlight } from "./lib/flight";
+import { type Units, UNITS_KEY, readStoredUnits } from "./lib/units";
 
 const LEGACY_KEY = "fairway-lab/sessions/v1";
 const PROFILE_KEY = "fairway-lab/active-profile";
@@ -56,8 +57,10 @@ interface AppState {
   sessions: Session[];     // persisted history (current excluded until ended)
   profileId: string | null;
   simProfileId: string | null; // shots from the simulator are filed under this ("Tiger Woods")
+  units: Units;            // display units (metric / imperial) — render-time only
 
   setAdapter: (id: string) => void;
+  setUnits: (u: Units) => void;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   setClub: (club: Club) => void;
@@ -102,6 +105,12 @@ export const useStore = create<AppState>((set, get) => {
     sessions: [],
     profileId: readStoredProfileId(),
     simProfileId: null,
+    units: readStoredUnits(),
+
+    setUnits: (u) => {
+      set({ units: u });
+      try { localStorage.setItem(UNITS_KEY, u); } catch (e) { warn(e); }
+    },
 
     setAdapter: (id) => {
       const adapter = adapters[id];

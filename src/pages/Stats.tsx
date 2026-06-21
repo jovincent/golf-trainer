@@ -9,6 +9,7 @@ import { aggregateByClub, type ClubAgg } from "../lib/stats";
 import { ShareModal } from "../components/ShareModal";
 import { buildStatsShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
+import { useUnits } from "../lib/useUnits";
 import { downloadText } from "../lib/export";
 
 // Stable colour per club (long → short).
@@ -27,6 +28,7 @@ const tooltip = {
 const tick = { fontFamily: "JetBrains Mono", fontSize: 11, fill: "rgb(var(--c-ink))" } as const;
 
 function BullseyeChart({ aggs }: { aggs: ClubAgg[] }) {
+  const U = useUnits();
   const [activeClub, setActiveClub] = useState<string>(aggs[0]?.club ?? "");
   const agg = aggs.find((a) => a.club === activeClub);
   if (!agg || !agg.clean.length) return null;
@@ -81,7 +83,7 @@ function BullseyeChart({ aggs }: { aggs: ClubAgg[] }) {
               </text>
               <text x={cx + r * sc + 2} y={cy + 8}
                 fontSize={7} fontFamily="JetBrains Mono" fill={stroke} fillOpacity={0.55}>
-                {r.toFixed(1)}m
+                {U.d(r, 1)}{U.distUnit}
               </text>
             </g>
           ))}
@@ -112,12 +114,12 @@ function BullseyeChart({ aggs }: { aggs: ClubAgg[] }) {
         <div className="grid gap-2 min-w-[140px]">
           <div className="bg-panel rounded-xl px-3 py-2">
             <div className="text-[10px] uppercase tracking-wide text-ink/45">Avg carry</div>
-            <div className="metric text-lg font-semibold text-ink">{agg.carry.toFixed(0)} m</div>
+            <div className="metric text-lg font-semibold text-ink">{U.d(agg.carry, 0)} {U.distUnit}</div>
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
             <div className="text-[10px] uppercase tracking-wide text-ink/45">Avg drift</div>
             <div className={"metric text-lg font-semibold " + (meanOffline > 1.5 ? "text-terracotta" : meanOffline < -1.5 ? "text-teal" : "text-fairway")}>
-              {meanOffline > 0 ? "+" : ""}{meanOffline.toFixed(1)} m
+              {meanOffline > 0 ? "+" : ""}{U.d(meanOffline, 1)} {U.distUnit}
             </div>
             <div className="text-[10px] text-ink/40 mt-0.5">
               {meanOffline > 2 ? "fade tendency" : meanOffline < -2 ? "draw tendency" : "centered"}
@@ -125,11 +127,11 @@ function BullseyeChart({ aggs }: { aggs: ClubAgg[] }) {
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
             <div className="text-[10px] uppercase tracking-wide text-ink/45">Lateral dispersion ±</div>
-            <div className="metric text-lg font-semibold text-teal">{agg.offlineSd.toFixed(1)} m</div>
+            <div className="metric text-lg font-semibold text-teal">{U.d(agg.offlineSd, 1)} {U.distUnit}</div>
           </div>
           <div className="bg-panel rounded-xl px-3 py-2">
             <div className="text-[10px] uppercase tracking-wide text-ink/45">Carry consistency ±</div>
-            <div className="metric text-lg font-semibold text-gold">{agg.carrySd.toFixed(1)} m</div>
+            <div className="metric text-lg font-semibold text-gold">{U.d(agg.carrySd, 1)} {U.distUnit}</div>
           </div>
           <div className="flex flex-col gap-1 pt-1 text-[11px] text-ink/55">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-fairway inline-block shrink-0" /> ≤ 5% carry</span>
@@ -243,6 +245,7 @@ export function Stats() {
   const shots = useStore(allShots);
   const aggs = aggregateByClub(shots);
   const player = usePlayerName();
+  const U = useUnits();
   const [share, setShare] = useState<ShareEnvelope | null>(null);
 
   if (!aggs.length) {
@@ -253,9 +256,9 @@ export function Stats() {
     );
   }
 
-  const carryData = aggs.map((a) => ({ club: a.club, carry: Math.round(a.carry), sd: Math.round(a.carrySd) }));
+  const carryData = aggs.map((a) => ({ club: a.club, carry: Math.round(U.dv(a.carry)), sd: Math.round(U.dv(a.carrySd)) }));
   const smashData = aggs.map((a) => ({ club: a.club, smash: +a.smash.toFixed(2) }));
-  const sdData = aggs.map((a) => ({ club: a.club, sd: +a.carrySd.toFixed(1) }));
+  const sdData = aggs.map((a) => ({ club: a.club, sd: +U.dv(a.carrySd).toFixed(1) }));
 
   // Dispersion grid: ticks every 5 m on both axes, domains rounded to 5 m.
   const cleanShots = aggs.flatMap((a) => a.clean);
@@ -301,13 +304,13 @@ export function Stats() {
               <XAxis type="number" hide />
               <YAxis type="category" dataKey="club" width={40} tick={tick} axisLine={false} tickLine={false} />
               <Tooltip
-                formatter={(v: number, n) => [n === "carry" ? `${v} m` : `±${v} m`, n === "carry" ? "Carry" : "Consistency"]}
+                formatter={(v: number, n) => [n === "carry" ? `${v} ${U.distUnit}` : `±${v} ${U.distUnit}`, n === "carry" ? "Carry" : "Consistency"]}
                 contentStyle={tooltip}
               />
               <Bar dataKey="carry" radius={[0, 5, 5, 0]} barSize={18}>
                 {carryData.map((_, i) => <Cell key={i} fill={colorFor(i)} />)}
                 <ErrorBar dataKey="sd" width={4} strokeWidth={1.5} stroke="#16294D" opacity={0.5} direction="x" />
-                <LabelList dataKey="carry" position="right" formatter={(v: number) => `${v} m`} style={tick} />
+                <LabelList dataKey="carry" position="right" formatter={(v: number) => `${v} ${U.distUnit}`} style={tick} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -334,16 +337,16 @@ export function Stats() {
                 <tr key={a.club} className="text-right border-t border-black/[0.03]">
                   <td className="text-left px-4 py-1.5 font-semibold">{a.club}</td>
                   <td className="px-3 py-1.5 text-ink/50">{a.nClean}{a.nMishit ? <span className="text-terracotta"> +{a.nMishit}</span> : null}</td>
-                  <td className="px-3 py-1.5 text-fairway font-semibold">{a.carry.toFixed(0)}</td>
-                  <td className="px-3 py-1.5 text-gold">{a.carryOptimal.toFixed(0)}</td>
-                  <td className="px-3 py-1.5 text-ink/60">{a.carryMed.toFixed(0)}</td>
-                  <td className="px-3 py-1.5 text-teal">{a.carrySd.toFixed(1)}</td>
+                  <td className="px-3 py-1.5 text-fairway font-semibold">{U.d(a.carry, 0)}</td>
+                  <td className="px-3 py-1.5 text-gold">{U.d(a.carryOptimal, 0)}</td>
+                  <td className="px-3 py-1.5 text-ink/60">{U.d(a.carryMed, 0)}</td>
+                  <td className="px-3 py-1.5 text-teal">{U.d(a.carrySd, 1)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-ink/40 px-4 py-2">Distances in m · "+N" = mishits excluded · Optimal = average of best shots.</p>
+        <p className="text-[11px] text-ink/40 px-4 py-2">Distances in {U.distUnit} · "+N" = mishits excluded · Optimal = average of best shots.</p>
       </section>
 
       <div className="grid md:grid-cols-2 gap-4">
@@ -374,8 +377,8 @@ export function Stats() {
               <BarChart data={sdData} margin={{ left: -10, right: 8, top: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#eef3fb" vertical={false} />
                 <XAxis dataKey="club" tick={tick} axisLine={false} tickLine={false} interval={0} />
-                <YAxis tick={tick} axisLine={false} tickLine={false} unit=" m" />
-                <Tooltip formatter={(v: number) => [`±${v} m`, "Consistency"]} contentStyle={tooltip} />
+                <YAxis tick={tick} axisLine={false} tickLine={false} unit={` ${U.distUnit}`} />
+                <Tooltip formatter={(v: number) => [`±${v} ${U.distUnit}`, "Consistency"]} contentStyle={tooltip} />
                 <Bar dataKey="sd" radius={[5, 5, 0, 0]} barSize={16} fill="#2F8FA6">
                   {sdData.map((_, i) => <Cell key={i} fill={colorFor(i)} />)}
                 </Bar>
@@ -408,15 +411,15 @@ export function Stats() {
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ left: 0, right: 16, top: 8, bottom: 8 }}>
               <CartesianGrid stroke="#dde7f3" />
-              <XAxis type="number" dataKey="x" name="offset" unit=" m" domain={[-xMax, xMax]} ticks={xTicks} interval={0} tick={{ ...tick, fontSize: 10 }} />
-              <YAxis type="number" dataKey="y" name="carry" unit=" m" domain={[yLo, yHi]} ticks={yTicks} interval={0} tick={tick} />
+              <XAxis type="number" dataKey="x" name="offset" unit={` ${U.distUnit}`} domain={[-xMax, xMax]} ticks={xTicks} interval={0} tick={{ ...tick, fontSize: 10 }} tickFormatter={(v: number) => U.d(v, 0)} />
+              <YAxis type="number" dataKey="y" name="carry" unit={` ${U.distUnit}`} domain={[yLo, yHi]} ticks={yTicks} interval={0} tick={tick} tickFormatter={(v: number) => U.d(v, 0)} />
               <ZAxis range={[45, 45]} />
               <Customized component={DispersionZones} yHi={yHi} xMax={xMax} disp={DISP} dispWarn={DISP_WARN} />
               <ReferenceLine x={0} stroke="#16294D" strokeDasharray="4 4" />
               <Tooltip
                 cursor={{ strokeDasharray: "3 3" }}
                 contentStyle={tooltip}
-                formatter={(v: number) => v.toFixed(1)}
+                formatter={(v: number) => `${U.d(v, 1)} ${U.distUnit}`}
               />
               <Legend wrapperStyle={{ fontFamily: "JetBrains Mono", fontSize: 11 }} />
               {aggs.map((a, i) => (

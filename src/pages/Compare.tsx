@@ -7,6 +7,7 @@ import {
 import { api, type Profile } from "../lib/api";
 import { aggregateByClub, type ClubAgg } from "../lib/stats";
 import { applyFlight } from "../lib/flight";
+import { useUnits } from "../lib/useUnits";
 import type { Session, Shot, Club } from "../types";
 
 // ─── Palette ─────────────────────────────────────────────────────────────────
@@ -226,6 +227,7 @@ const sortClubs = (clubs: string[]) =>
 
 // ─── Radar ───────────────────────────────────────────────────────────────────
 function RadarComparison({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: Map<string, ClubAgg[]> }) {
+  const U = useUnits();
   const profilesWithData = profiles.filter((p) => (aggsMap.get(p.id) ?? []).length > 0);
   const commonClubs: Set<string> = profilesWithData.reduce<Set<string>>((acc, p, i) => {
     const clubs = new Set<string>((aggsMap.get(p.id) ?? []).map((a) => a.club as string));
@@ -248,7 +250,23 @@ function RadarComparison({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: 
     profiles.forEach((p) => {
       const raw = rawMetric(axis.key, aggsMap.get(p.id) ?? [], commonClubs);
       if (raw == null) return;
-      entry[p.name] = raw.toFixed(axis.dp) + axis.unit;
+      // Raw value is stored metric; convert distance/speed dims for display only.
+      // (Normalization above stays in metres — only these human-readable strings change.)
+      let display: string;
+      switch (axis.key) {
+        case "distance":   // 7i carry (m)
+          display = U.dv(raw).toFixed(axis.dp) + " " + U.distUnit;
+          break;
+        case "vitesse":    // driver club-head speed (km/h)
+          display = U.s(raw, axis.dp) + " " + U.speedUnit;
+          break;
+        case "regularite": // consistency σ (m)
+          display = U.dv(raw).toFixed(axis.dp) + " " + U.distUnit + " σ";
+          break;
+        default:           // smash (ratio) & precision (%) — no conversion
+          display = raw.toFixed(axis.dp) + axis.unit;
+      }
+      entry[p.name] = display;
     });
     return entry;
   });
@@ -379,11 +397,12 @@ function RadarBlock({ title, subtitle, data, profiles, domain, formatter = (v: n
 function CompareTable({ clubs, profiles, aggsMap }: {
   clubs: string[]; profiles: Profile[]; aggsMap: Map<string, ClubAgg[]>;
 }) {
+  const U = useUnits();
   return (
     <section className="card overflow-hidden">
       <div className="px-4 py-3 border-b border-black/5 flex items-center gap-2">
         <Crosshair className="w-4 h-4 text-teal" />
-        <h3 className="font-display text-base">Avg carry by club · m</h3>
+        <h3 className="font-display text-base">Avg carry by club · {U.distUnit}</h3>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -411,13 +430,13 @@ function CompareTable({ clubs, profiles, aggsMap }: {
                     return (
                       <td key={p.id} className={"px-3 py-2 " + (isMax ? "font-bold" : "text-ink/55")}
                         style={isMax ? { color: COLORS[i % COLORS.length] } : {}}>
-                        {v != null ? v.toFixed(0) : <span className="text-ink/25">—</span>}
+                        {v != null ? U.d(v) : <span className="text-ink/25">—</span>}
                       </td>
                     );
                   })}
                   {profiles.length >= 2 && (
                     <td className="px-3 py-2 text-ink/30">
-                      {delta != null ? `+${delta.toFixed(0)}` : "—"}
+                      {delta != null ? `+${U.d(delta)}` : "—"}
                     </td>
                   )}
                 </tr>
@@ -432,6 +451,7 @@ function CompareTable({ clubs, profiles, aggsMap }: {
 
 // ─── Summary cards ────────────────────────────────────────────────────────────
 function SummaryCards({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: Map<string, ClubAgg[]> }) {
+  const U = useUnits();
   const stats = profiles.map((p, i) => {
     const aggs = aggsMap.get(p.id) ?? [];
     if (!aggs.length) return null;
@@ -461,16 +481,17 @@ function SummaryCards({ profiles, aggsMap }: { profiles: Profile[]; aggsMap: Map
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {drL && <Card icon={TrendingUp} label="Longest driver" value={`${drL.drCarry!.toFixed(0)} m`} sub={drL.p.name} color={COLORS[drL.i % COLORS.length]} />}
+      {drL && <Card icon={TrendingUp} label="Longest driver" value={U.fd(drL.drCarry!)} sub={drL.p.name} color={COLORS[drL.i % COLORS.length]} />}
       <Card icon={Gauge}     label="Best smash factor" value={smashL.avgSmash.toFixed(2)} sub={smashL.p.name} color={COLORS[smashL.i % COLORS.length]} />
-      <Card icon={Crosshair} label="Most accurate (drift)"  value={`±${dispL.avgDisp.toFixed(1)} m`} sub={dispL.p.name} color={COLORS[dispL.i % COLORS.length]} />
-      <Card icon={TrendingUp} label="Most consistent (carry)" value={`±${regL.avgReg.toFixed(1)} m`} sub={regL.p.name} color={COLORS[regL.i % COLORS.length]} />
+      <Card icon={Crosshair} label="Most accurate (drift)"  value={`±${U.fd(dispL.avgDisp, 1)}`} sub={dispL.p.name} color={COLORS[dispL.i % COLORS.length]} />
+      <Card icon={TrendingUp} label="Most consistent (carry)" value={`±${U.fd(regL.avgReg, 1)}`} sub={regL.p.name} color={COLORS[regL.i % COLORS.length]} />
     </div>
   );
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function Compare() {
+  const U = useUnits();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [aggsMap, setAggsMap] = useState<Map<string, ClubAgg[]>>(new Map());
@@ -529,12 +550,19 @@ export function Compare() {
   const selectedProfiles = profiles.filter(p => selected.has(p.id));
   const allClubs = sortClubs([...new Set(selectedProfiles.flatMap(p => (aggsMap.get(p.id) ?? []).map(a => a.club)))]);
 
+  // Distance fields are stored in metres; convert to the active unit so the
+  // polygons scale. Smash is a unitless ratio and is left untouched.
+  const DIST_FIELDS: ReadonlySet<keyof ClubAgg> = new Set(["carry", "carrySd", "offlineSd"]);
   function buildData(field: keyof ClubAgg, dp = 1) {
+    const isDist = DIST_FIELDS.has(field);
     return allClubs.map(club => {
       const entry: Record<string, string | number> = { club };
       for (const p of selectedProfiles) {
         const agg = aggsMap.get(p.id)?.find(a => a.club === club);
-        if (agg) entry[p.name] = +((agg[field] as number).toFixed(dp));
+        if (agg) {
+          const raw = agg[field] as number;
+          entry[p.name] = +((isDist ? U.dv(raw) : raw).toFixed(dp));
+        }
       }
       return entry;
     });
@@ -594,15 +622,15 @@ export function Compare() {
         <>
           {selectedProfiles.length >= 2 && <SummaryCards profiles={selectedProfiles} aggsMap={aggsMap} />}
           {selectedProfiles.length >= 1 && <RadarComparison profiles={selectedProfiles} aggsMap={aggsMap} />}
-          <RadarBlock title="Carry by club" subtitle="Average of best 30% of shots · metres · farther = larger"
-            data={buildData("carry")} profiles={selectedProfiles} formatter={v => `${v} m`} />
+          <RadarBlock title="Carry by club" subtitle={`Average of best 30% of shots · ${U.distUnit} · farther = larger`}
+            data={buildData("carry")} profiles={selectedProfiles} formatter={v => `${v} ${U.distUnit}`} />
           {allClubs.length > 0 && <CompareTable clubs={allClubs} profiles={selectedProfiles} aggsMap={aggsMap} />}
           <RadarBlock title="Smash factor by club" subtitle="Ball speed / club speed ratio · higher = better"
             data={buildData("smash", 2)} profiles={selectedProfiles} domain={[1, 1.5]} formatter={v => v.toFixed(2)} />
           <RadarBlock title="Carry consistency (σ)" subtitle="Carry standard deviation · smaller polygon = more consistent"
-            data={buildData("carrySd")} profiles={selectedProfiles} formatter={v => `±${v} m`} />
+            data={buildData("carrySd")} profiles={selectedProfiles} formatter={v => `±${v} ${U.distUnit}`} />
           <RadarBlock title="Lateral dispersion (σ)" subtitle="Drift standard deviation · smaller polygon = more accurate"
-            data={buildData("offlineSd")} profiles={selectedProfiles} formatter={v => `±${v} m`} />
+            data={buildData("offlineSd")} profiles={selectedProfiles} formatter={v => `±${v} ${U.distUnit}`} />
         </>
       )}
     </div>

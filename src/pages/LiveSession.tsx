@@ -4,7 +4,24 @@ import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { evaluateShot, ratingColor, metricQuality, qualityColor } from "../lib/shotEval";
+import { useUnits } from "../lib/useUnits";
 import { CLUB_LABELS, type Shot } from "../types";
+
+// Compact metric ⇄ imperial toggle shown on the hero card.
+function UnitToggle() {
+  const units = useStore((s) => s.units);
+  const setUnits = useStore((s) => s.setUnits);
+  return (
+    <div className="inline-flex rounded-lg overflow-hidden ring-1 ring-black/10 text-[10px] font-bold">
+      {(["metric", "imperial"] as const).map((u) => (
+        <button key={u} onClick={() => setUnits(u)}
+          className={"px-2 py-0.5 transition " + (units === u ? "bg-ink text-white" : "text-ink/45 hover:bg-ink/5")}>
+          {u === "metric" ? "m" : "yd"}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // Big at-a-glance numbers for the shot just hit. `color` (when set) is an inline
 // CSS colour from the red→blue quality ramp; otherwise the value is neutral.
@@ -22,24 +39,28 @@ function HeroStat({ label, value, sub, cls, color }: {
 }
 
 function HeroStats({ shot }: { shot: Shot }) {
+  const U = useUnits();
   const off = shot.offlineM;
-  const offDir = Math.abs(off) < 1 ? "m · straight" : `m · ${off < 0 ? "left" : "right"}`;
+  const offDir = Math.abs(off) < 1 ? `${U.distUnit} · straight` : `${U.distUnit} · ${off < 0 ? "left" : "right"}`;
   // Quality colour per metric (red = bad … blue = good). smash/launch/backspin are
   // scored against the club's ideal window; offline against the target line.
   const q = (m: "smash" | "launch" | "spin" | "offline") => qualityColor(metricQuality(shot, m));
   return (
     <section className="card p-4 h-full">
-      <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[10px] uppercase tracking-widest text-ink/40">Last shot · {shot.club}</h3>
+        <UnitToggle />
+      </div>
       <div className="grid grid-cols-3 gap-2">
-        <HeroStat label="Club speed" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
-        <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" />
+        <HeroStat label="Club speed" value={U.s(shot.clubSpeed)} sub={U.speedUnit} />
+        <HeroStat label="Ball speed" value={U.s(shot.ballSpeed)} sub={U.speedUnit} />
         <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} color={q("smash")} />
-        <HeroStat label="Carry" value={shot.carry.toFixed(0)} sub="m" />
-        <HeroStat label="Total" value={shot.total.toFixed(0)} sub="m" />
-        <HeroStat label="Apex" value={shot.apex.toFixed(0)} sub="m" />
+        <HeroStat label="Carry" value={U.d(shot.carry)} sub={U.distUnit} />
+        <HeroStat label="Total" value={U.d(shot.total)} sub={U.distUnit} />
+        <HeroStat label="Apex" value={U.d(shot.apex)} sub={U.distUnit} />
         <HeroStat label="Launch" value={shot.launchAngle.toFixed(1)} sub="°" color={q("launch")} />
         <HeroStat label="Backspin" value={shot.backSpin.toFixed(0)} sub="rpm" color={q("spin")} />
-        <HeroStat label="Offline" value={Math.abs(off).toFixed(1)} sub={offDir} color={q("offline")} />
+        <HeroStat label="Offline" value={U.d(Math.abs(off), 1)} sub={offDir} color={q("offline")} />
       </div>
     </section>
   );
@@ -47,6 +68,7 @@ function HeroStats({ shot }: { shot: Shot }) {
 
 export function LiveSession() {
   const { adapterId, conn, current, selectedClub, clubArmed, setLockClub, simHit, endSession, deleteShot } = useStore();
+  const U = useUnits();
   const shots = current?.shots ?? [];
   const last = shots[0];
   const connected = conn.status === "connected";
@@ -121,15 +143,15 @@ export function LiveSession() {
               <thead>
                 <tr className="text-[11px] uppercase tracking-wide text-ink/40 text-right">
                   <th className="text-left px-4 py-2">Club</th>
-                  <th className="px-4 py-2">Carry <span className="text-ink/30 normal-case">(m)</span></th>
-                  <th className="px-4 py-2">Total <span className="text-ink/30 normal-case">(m)</span></th>
-                  <th className="px-4 py-2">Ball <span className="text-ink/30 normal-case">(km/h)</span></th>
+                  <th className="px-4 py-2">Carry <span className="text-ink/30 normal-case">({U.distUnit})</span></th>
+                  <th className="px-4 py-2">Total <span className="text-ink/30 normal-case">({U.distUnit})</span></th>
+                  <th className="px-4 py-2">Ball <span className="text-ink/30 normal-case">({U.speedUnit})</span></th>
                   <th className="px-4 py-2">Smash</th>
                   <th className="px-4 py-2">AoA <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Path <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Face <span className="text-ink/30 normal-case">(°)</span></th>
                   <th className="px-4 py-2">Spin <span className="text-ink/30 normal-case">(rpm)</span></th>
-                  <th className="px-4 py-2">Offline <span className="text-ink/30 normal-case">(m)</span></th>
+                  <th className="px-4 py-2">Offline <span className="text-ink/30 normal-case">({U.distUnit})</span></th>
                   <th className="px-4 py-2"></th>
                 </tr>
               </thead>
@@ -139,16 +161,16 @@ export function LiveSession() {
                   return (
                   <tr key={s.id} className="text-right border-t border-black/[0.03] hover:bg-panel/50">
                     <td className="text-left px-4 py-2 font-semibold">{s.club}</td>
-                    <td className="px-4 py-2">{s.carry.toFixed(0)}</td>
-                    <td className="px-4 py-2 text-ink/60">{s.total.toFixed(0)}</td>
-                    <td className="px-4 py-2">{s.ballSpeed.toFixed(0)}</td>
+                    <td className="px-4 py-2">{U.d(s.carry)}</td>
+                    <td className="px-4 py-2 text-ink/60">{U.d(s.total)}</td>
+                    <td className="px-4 py-2">{U.s(s.ballSpeed)}</td>
                     <td className={"px-4 py-2 font-semibold " + ratingColor(c.smash)}>{s.smashFactor.toFixed(2)}</td>
                     <td className={"px-4 py-2 " + ratingColor(c.attack)}>{s.attackAngle >= 0 ? "+" : "−"}{Math.abs(s.attackAngle).toFixed(1)}°</td>
                     <td className={"px-4 py-2 " + ratingColor(c.clubPath)}>{Math.abs(s.clubPath).toFixed(1)}{s.clubPath < 0 ? "L" : "R"}</td>
                     <td className={"px-4 py-2 " + ratingColor(c.faceToPath)}>{Math.abs(s.clubFace).toFixed(1)}{s.clubFace < 0 ? "L" : "R"}</td>
                     <td className={"px-4 py-2 " + ratingColor(c.spin)}>{s.backSpin.toFixed(0)}</td>
                     <td className={"px-4 py-2 " + (Math.abs(s.offlineM) > 12 ? "text-terracotta" : "text-ink/60")}>
-                      {Math.abs(s.offlineM).toFixed(1)}{s.offlineM < 0 ? "L" : "R"}
+                      {U.d(Math.abs(s.offlineM), 1)}{s.offlineM < 0 ? "L" : "R"}
                     </td>
                     <td className="px-2 py-2">
                       <button

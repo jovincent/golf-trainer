@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eraser } from "lucide-react";
 import type { Shot } from "../types";
+import { useUnits } from "../lib/useUnits";
 
 /**
  * 3D shot view — dependency-free SVG with a real pinhole camera.
@@ -96,6 +97,7 @@ const pathLen = (pts: P[]) =>
  *               the camera scale (longest shot).
  */
 export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
+  const U = useUnits();
   // "Clear" hides the currently shown trajectories; new shots reappear after.
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const visible = shots.filter((s) => !hidden.has(s.id));
@@ -114,8 +116,10 @@ export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
   const out8L = edgePts(project, Yland, (y) => -Z_OUT * y);
   const out8R = edgePts(project, Yland, (y) => Z_OUT * y);
 
+  // Grid every 50 display-units (50 m, or 50 yd → 45.72 m) so labels land on round numbers.
+  const stepM = 50 / U.dv(1);
   const marks: number[] = [];
-  for (let m = 50; m <= maxTotal + 1; m += 50) marks.push(m);
+  for (let m = stepM; m <= maxTotal + 1; m += stepM) marks.push(m);
   const lbl5 = project(Z_IN * Yland * 0.92, Yland * 0.92, 0);
   const lbl8 = project(Z_OUT * Yland * 0.92, Yland * 0.92, 0);
   const tee = project(0, 0, 0);
@@ -162,7 +166,7 @@ export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
         return (
           <g key={m}>
             <line x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy} stroke="#16294D" strokeOpacity={0.16} strokeWidth={1} />
-            <text x={b.sx + 4} y={b.sy + 3} fontSize={9} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.5}>{m}</text>
+            <text x={b.sx + 4} y={b.sy + 3} fontSize={9} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.5}>{U.d(m)}</text>
           </g>
         );
       })}
@@ -197,7 +201,7 @@ export function ShotTrajectory3D({ shots = [] }: { shots?: Shot[] }) {
       {/* caption */}
       {shot ? (
         <text x={12} y={H - 10} fontSize={12} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.7}>
-          {shot.club} · {shot.carry.toFixed(0)} m carry · {shot.total.toFixed(0)} m total · apex {shot.apex.toFixed(0)} m
+          {shot.club} · {U.fd(shot.carry)} carry · {U.fd(shot.total)} total · apex {U.fd(shot.apex)}
         </text>
       ) : (
         <text x={CX} y={H / 2} textAnchor="middle" fontSize={13} fontFamily="Manrope" fill="#16294D" fillOpacity={0.4}>

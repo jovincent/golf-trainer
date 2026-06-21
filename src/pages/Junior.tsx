@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "../store";
+import { useUnits } from "../lib/useUnits";
 import type { Shot } from "../types";
 
 // ── Rating ──────────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ function Stars({ n, color }: { n: 1 | 2 | 3; color: string }) {
 // ── Direction bar ─────────────────────────────────────────────────────────────
 // Shows where the ball landed laterally. The bar spans ±maxM metres.
 function DirectionBar({ offlineM, carry }: { offlineM: number; carry: number }) {
+  const U = useUnits();
   const maxM   = Math.max(20, Math.abs(offlineM) * 1.4);        // at least ±20 m visible
   const pct    = Math.abs(offlineM) / Math.max(1, carry);
   const dotColor = pct < 0.05 ? "#2F8F5B" : pct < 0.08 ? "#C68A14" : "#C2603A";
@@ -44,8 +46,8 @@ function DirectionBar({ offlineM, carry }: { offlineM: number; carry: number }) 
   const dirText = Math.abs(offlineM) < 1
     ? "Straight!"
     : offlineM < 0
-    ? `${Math.abs(offlineM).toFixed(1)} m left`
-    : `${offlineM.toFixed(1)} m right`;
+    ? `${U.fd(Math.abs(offlineM), 1)} left`
+    : `${U.fd(offlineM, 1)} right`;
 
   return (
     <div className="w-full select-none">
@@ -98,6 +100,7 @@ function DirectionBar({ offlineM, carry }: { offlineM: number; carry: number }) 
 
 // ── Hero: last shot ───────────────────────────────────────────────────────────
 function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
+  const U = useUnits();
   const r = rateShot(shot);
 
   return (
@@ -120,7 +123,7 @@ function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
 
       {/* Carry */}
       <div className="font-mono font-bold leading-none mb-1" style={{ fontSize: "4.5rem", color: r.color }}>
-        {shot.carry.toFixed(0)} m
+        {U.d(shot.carry)} {U.distUnit}
       </div>
       <div className="text-sm text-ink/40 mb-3">distance</div>
 
@@ -143,7 +146,7 @@ function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
         </div>
         <div>
           <div className="text-ink/40 text-xs">Ball speed</div>
-          <div className="metric font-semibold">{shot.ballSpeed.toFixed(0)} km/h</div>
+          <div className="metric font-semibold">{U.fs(shot.ballSpeed)}</div>
         </div>
         <div>
           <div className="text-ink/40 text-xs">Club</div>
@@ -156,6 +159,7 @@ function ShotHero({ shot, isRecord }: { shot: Shot; isRecord: boolean }) {
 
 // ── Mini card (history) ───────────────────────────────────────────────────────
 function MiniCard({ shot, index }: { shot: Shot; index: number }) {
+  const U = useUnits();
   const r = rateShot(shot);
   const dir = Math.abs(shot.offlineM) < 1 ? "↑" : shot.offlineM < 0 ? "←" : "→";
   return (
@@ -165,9 +169,9 @@ function MiniCard({ shot, index }: { shot: Shot; index: number }) {
     >
       <div className="text-[10px] text-ink/30 mb-0.5">#{index}</div>
       <div className="text-lg font-mono font-bold" style={{ color: r.color }}>
-        {shot.carry.toFixed(0)}
+        {U.d(shot.carry)}
       </div>
-      <div className="text-[10px] text-ink/40 mb-1">m</div>
+      <div className="text-[10px] text-ink/40 mb-1">{U.distUnit}</div>
       <div className="text-base">{r.emoji}</div>
       <div className="text-xs text-ink/40">{dir}</div>
     </div>
@@ -191,6 +195,7 @@ function Waiting() {
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 export function Junior() {
+  const U          = useUnits();
   const current    = useStore((s) => s.current);
   const adapterId  = useStore((s) => s.adapterId);
   const simHit     = useStore((s) => s.simHit);
@@ -229,7 +234,7 @@ export function Junior() {
         {bestCarry > 0 && (
           <div className="text-right">
             <div className="text-[11px] text-ink/40 uppercase tracking-wide">Best carry</div>
-            <div className="metric text-2xl font-bold text-gold">{bestCarry.toFixed(0)} m</div>
+            <div className="metric text-2xl font-bold text-gold">{U.fd(bestCarry)}</div>
           </div>
         )}
       </div>

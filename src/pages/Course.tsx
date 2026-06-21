@@ -10,6 +10,7 @@ import { api } from "../lib/api";
 import { ShareModal } from "../components/ShareModal";
 import { buildRoundShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
+import { useUnits } from "../lib/useUnits";
 import {
   type Hole, type Lie, type Vec, type HoleScore, type Round,
   applyShot, distToPin, pathLength, scoreName,
@@ -274,6 +275,7 @@ function CourseCarousel({ courseId, setCourseId }: {
 }
 
 export function Course() {
+  const U = useUnits();
   const { adapterId, conn, simHit, connect, setClub, selectedClub, clubArmed } = useStore();
   const profileId = useStore((s) => s.profileId);
   const shots = useStore(allShots);
@@ -471,7 +473,7 @@ export function Course() {
               const on = t.id === teeId;
               const yards = Math.round(coursePar > 0 ? course.reduce((a, h) => a + pathLength(h.centerline), 0) * t.factor : 0);
               return (
-                <button key={t.id} onClick={() => setTeeId(t.id)} title={`${yards} m`}
+                <button key={t.id} onClick={() => setTeeId(t.id)} title={`${U.d(yards)} ${U.distUnit}`}
                   className={"flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold border transition " +
                     (on ? "border-royal bg-royal/10 text-royal" : "border-black/5 bg-surface text-ink/60 hover:bg-ink/5")}>
                   <span className="w-3 h-3 rounded-full ring-1 ring-ink/20 shrink-0" style={{ background: t.color }} />
@@ -556,7 +558,7 @@ export function Course() {
             {holeStatus === "playing" ? (
               <div className="mt-4 grid gap-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <Stat label="To pin" value={`${dist.toFixed(0)} m`} accent="terracotta" />
+                  <Stat label="To pin" value={`${U.d(dist)} ${U.distUnit}`} accent="terracotta" />
                   <Stat label="Lie" value={LIE_LABEL[lie]} />
                   <Stat label="Strokes" value={`${strokes}`} />
                   <Stat label="Mulligans" value={`${mulligans}`} accent={mulligans ? "gold" : undefined} />
@@ -565,7 +567,7 @@ export function Course() {
                 {lie === "green" ? (
                   <>
                     <p className="text-sm text-ink/60">
-                      Green at <b>{dist.toFixed(1)} m</b> → <b>{dist <= 3 ? "≤ 3 m: 1 putt" : "2 putts"}</b>.
+                      Green at <b>{U.d(dist, 1)} {U.distUnit}</b> → <b>{dist <= 3 ? `≤ ${U.d(3)} ${U.distUnit}: 1 putt` : "2 putts"}</b>.
                     </p>
                     <button onClick={holeOut} className="w-full inline-flex items-center justify-center gap-2
                       bg-ink hover:bg-ink/90 text-white font-semibold rounded-xl px-5 py-3 transition">
@@ -575,7 +577,7 @@ export function Course() {
                 ) : (
                   <>
                     <p className="text-xs text-ink/50">
-                      🎯 Click the map to aim — <b className="metric">{aimDist.toFixed(0)} m</b>
+                      🎯 Click the map to aim — <b className="metric">{U.d(aimDist)} {U.distUnit}</b>
                       {suggestion && <>
                       {" · "}suggested club <b className="metric">{suggestion}</b>
                       {isApproach && <span className="text-teal"> · aim for the green center</span>}
@@ -645,7 +647,7 @@ export function Course() {
                     <span className={"text-xs " + (e.lie === "water" || e.lie === "ob" ? "text-terracotta font-semibold" : "text-ink/50")}>
                       {LIE_LABEL[e.lie]}{e.penalty ? ` +${e.penalty}` : ""}
                     </span>
-                    <span className="metric text-ink/60 w-16 text-right">{e.lie === "holed" ? "✓" : `${e.dist.toFixed(0)} m`}</span>
+                    <span className="metric text-ink/60 w-16 text-right">{e.lie === "holed" ? "✓" : `${U.d(e.dist)} ${U.distUnit}`}</span>
                   </div>
                 ))}
               </div>
@@ -676,15 +678,16 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 
 // Metrics of the shot just played — shown in the left column after each tee/approach shot.
 function ShotMetricsCard({ shot, n }: { shot: Shot; n: number }) {
-  const lr = (v: number | undefined) => (v == null ? "—" : `${Math.abs(v).toFixed(1)} ${v < 0 ? "L" : "R"}`);
+  const U = useUnits();
+  const lr = (v: number | undefined) => (v == null ? "—" : `${U.d(Math.abs(v), 1)} ${v < 0 ? "L" : "R"}`);
   const cells: Array<{ k: string; v: string; accent?: boolean }> = [
-    { k: "Carry", v: `${shot.carry.toFixed(0)} m`, accent: true },
-    { k: "Total", v: `${shot.total.toFixed(0)} m` },
-    { k: "Ball speed", v: `${shot.ballSpeed.toFixed(0)} km/h` },
-    { k: "Club speed", v: `${shot.clubSpeed.toFixed(0)} km/h` },
+    { k: "Carry", v: `${U.d(shot.carry)} ${U.distUnit}`, accent: true },
+    { k: "Total", v: `${U.d(shot.total)} ${U.distUnit}` },
+    { k: "Ball speed", v: `${U.s(shot.ballSpeed)} ${U.speedUnit}` },
+    { k: "Club speed", v: `${U.s(shot.clubSpeed)} ${U.speedUnit}` },
     { k: "Smash", v: shot.smashFactor.toFixed(2) },
     { k: "Launch", v: `${(shot.launchAngle ?? 0).toFixed(1)}°` },
-    { k: "Apex", v: `${shot.apex.toFixed(0)} m` },
+    { k: "Apex", v: `${U.d(shot.apex)} ${U.distUnit}` },
     { k: "Backspin", v: `${(shot.backSpin ?? 0).toFixed(0)} rpm` },
     { k: "Offline", v: lr(shot.offlineM) },
   ];
@@ -885,6 +888,7 @@ function HoleMap({ H, ball, trail, aim, aiming, aimDist, onAim, teeFactor = 1, t
   H: Hole; ball: Vec; trail: Vec[]; aim: Vec; aiming: boolean; aimDist: number; onAim: (p: Vec) => void;
   teeFactor?: number; teeColor?: string;
 }) {
+  const U = useUnits();
   const proj = useMemo(() => makeProjector(H), [H]);
   const trees = useMemo(() => treesFor(H), [H]);
   const { sx, sy, scale } = proj;
@@ -984,7 +988,7 @@ function HoleMap({ H, ball, trail, aim, aiming, aimDist, onAim, teeFactor = 1, t
               x2={sx(p.x - nx * H.fairwayHalf)} y2={sy(p.y - ny * H.fairwayHalf)}
               stroke="#0f1d38" strokeOpacity={0.3} strokeWidth={1} strokeDasharray="2 3" />
             <text x={sx(p.x - nx * H.fairwayHalf) - 3} y={sy(p.y - ny * H.fairwayHalf)} textAnchor="end"
-              fontSize={9} fontFamily="JetBrains Mono" fill="#cdd9ec" fillOpacity={0.75}>{d}</text>
+              fontSize={9} fontFamily="JetBrains Mono" fill="#cdd9ec" fillOpacity={0.75}>{U.d(d)}</text>
           </g>
         );
       })}
@@ -1063,7 +1067,7 @@ function HoleMap({ H, ball, trail, aim, aiming, aimDist, onAim, teeFactor = 1, t
           <circle cx={sx(aim.x)} cy={sy(aim.y)} r={5} fill="none" stroke="#2F8FA6" strokeWidth={1.5} />
           <line x1={sx(aim.x) - 7} y1={sy(aim.y)} x2={sx(aim.x) + 7} y2={sy(aim.y)} stroke="#2F8FA6" strokeWidth={1} />
           <line x1={sx(aim.x)} y1={sy(aim.y) - 7} x2={sx(aim.x)} y2={sy(aim.y) + 7} stroke="#2F8FA6" strokeWidth={1} />
-          <text x={sx(aim.x) + 9} y={sy(aim.y) - 6} fontSize={11} fontFamily="JetBrains Mono" fill="#2F8FA6">{aimDist.toFixed(0)} m</text>
+          <text x={sx(aim.x) + 9} y={sy(aim.y) - 6} fontSize={11} fontFamily="JetBrains Mono" fill="#2F8FA6">{U.d(aimDist)} {U.distUnit}</text>
         </g>
       )}
 
@@ -1081,7 +1085,7 @@ function HoleMap({ H, ball, trail, aim, aiming, aimDist, onAim, teeFactor = 1, t
         <rect x={10} y={10} width={68} height={3} rx={1.5} fill="#F4C534" />
         <text x={20} y={42} fontSize={26} fontWeight={800} fontFamily="Manrope" fill="#16294D">{H.number}</text>
         <text x={44} y={30} fontSize={10} fontWeight={700} fontFamily="Manrope" fill="#2E5DA4">Par {H.par}</text>
-        <text x={44} y={43} fontSize={9} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.55}>{Math.round(total * teeFactor)} m</text>
+        <text x={44} y={43} fontSize={9} fontFamily="JetBrains Mono" fill="#16294D" fillOpacity={0.55}>{U.d(total * teeFactor)} {U.distUnit}</text>
         {H.name && (
           <text x={20} y={56} fontSize={8} fontFamily="Manrope" fontStyle="italic" fill="#16294D" fillOpacity={0.5}>{H.name.slice(0, 16)}</text>
         )}
@@ -1415,6 +1419,7 @@ function RoundSummaryGrid({ course, card, holeTrails }: { course: Hole[]; card: 
 }
 
 function CourseOverview({ course }: { course: Hole[] }) {
+  const U = useUnits();
   return (
     <section className="card p-4">
       <h3 className="font-display text-base mb-3">Course overview · {course.length} holes</h3>
@@ -1424,7 +1429,7 @@ function CourseOverview({ course }: { course: Hole[] }) {
             <MiniHole h={h} />
             <div className="flex items-center justify-between text-[11px] text-ink/50 px-1">
               <span className="metric font-semibold">{h.number}</span>
-              <span>P{h.par} · {pathLength(h.centerline).toFixed(0)}m</span>
+              <span>P{h.par} · {U.d(pathLength(h.centerline))}{U.distUnit}</span>
             </div>
           </div>
         ))}
