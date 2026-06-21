@@ -105,14 +105,12 @@ Golf-Trainer/
 │   ├── store.ts              # Global Zustand state
 │   ├── types.ts              # TypeScript types (Shot, Session, Club…)
 │   └── App.tsx               # Navigation + profile selector
-├── server/
-│   ├── index.js              # Express API (port 4141) + Open Graph share images
-│   ├── og.js                 # Dynamic OG card (PNG) generator
-│   ├── db.js                 # SQLite access (WAL mode)
-│   └── data/
-│       └── fairway.db        # Local SQLite database (git-ignored)
-└── .claude/
-    └── launch.json           # Claude Code preview config (npm run dev)
+└── server/
+    ├── index.js              # Express API (port 4141) + Open Graph share images
+    ├── og.js                 # Dynamic OG card (PNG) generator
+    ├── db.js                 # SQLite access (WAL mode)
+    └── data/
+        └── fairway.db        # Local SQLite database (git-ignored)
 ```
 
 ---
@@ -379,6 +377,5 @@ node scripts/importGarmin.mjs --commit   # save
 node scripts/validateModel.mjs path/to/export.csv
 ```
 
-> Ports are fixed: front end **4040**, API **4141** (`vite.config.ts`, `server/index.js`,
-> `.claude/launch.json`). `recomputeAll()` in the store re-derives every shot's distances
-> when the flight model changes.
+> Ports are fixed: front end **4040**, API **4141** (`vite.config.ts`, `server/index.js`).
+> `recomputeAll()` in the store re-derives every shot's distances when the flight model changes.

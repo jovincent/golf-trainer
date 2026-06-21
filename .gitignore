@@ -5,6 +5,3 @@ dist
 
 # Local SQLite database (user data)
 server/data/
-
-# Local agent/editor config
-.claude/
