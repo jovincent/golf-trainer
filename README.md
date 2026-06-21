@@ -118,12 +118,8 @@ Golf-Trainer/
 |---|---|
 | Front end | React 18 · TypeScript 5 · Vite 5 |
 | Style | Tailwind CSS 3 · CSS custom properties |
-| Global state | Zustand |
-| Charts | Recharts |
-| Icons | lucide-react |
 | Backend | Express 4 (Node.js ESM) |
 | Database | SQLite via native `node:sqlite` (WAL mode) |
-| Share images | `@resvg/resvg-js` (server-rendered OG PNGs) |
 | Bluetooth | Web Bluetooth API (Chrome/Edge only) |
 
 ---

@@ -131,3 +131,53 @@ export function evaluateShot(shot: Shot): ShotEval {
 /** Tailwind text colour for a rating. */
 export const ratingColor = (r?: Rating) =>
   r === "good" ? "text-fairway" : r === "bad" ? "text-terracotta" : r === "ok" ? "text-gold" : "text-ink";
+
+// ── Continuous quality → colour (red = bad … blue = good) ─────────────────────
+// Drives the live hero stats. `smash`, `launch` and `spin` are scored against the
+// club's ideal window (so the colour depends on the club); `offline` is absolute
+// (closer to the target line is better).
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/** 0 (bad) … 1 (good) quality for one hero metric, in the shot's club context. */
+export function metricQuality(shot: Shot, metric: "smash" | "launch" | "spin" | "offline"): number {
+  if (metric === "offline") return clamp01(1 - Math.abs(shot.offlineM) / 18);
+
+  const r = rangesFor(shot.club);
+  if (metric === "smash") {
+    const [okMin, goodMin] = r.smash;        // [okMin, goodMin]
+    const badLo = okMin - 0.08;              // clearly off-centre below here
+    return clamp01((shot.smashFactor - badLo) / (goodMin - badLo));
+  }
+
+  // launch / spin: full quality inside the good band, fading to 0 two OK-margins out.
+  const [gLo, gHi] = metric === "launch" ? r.launch : r.spin;
+  const margin = metric === "launch" ? OK_MARGIN.launch : OK_MARGIN.spin;
+  const v = metric === "launch" ? shot.launchAngle : shot.backSpin;
+  const dist = v < gLo ? gLo - v : v > gHi ? v - gHi : 0;
+  return clamp01(1 - dist / (2 * margin));
+}
+
+// Red → amber → teal → blue ramp (FlightLab palette).
+const QUALITY_RAMP: Array<[number, [number, number, number]]> = [
+  [0.0,  [0xc2, 0x60, 0x3a]], // terracotta — bad
+  [0.35, [0xdb, 0x8a, 0x36]], // amber
+  [0.6,  [0x3e, 0x8e, 0x7e]], // teal
+  [1.0,  [0x2e, 0x5d, 0xa4]], // royal — good
+];
+
+/** Map a 0…1 quality to a CSS colour on the red→blue ramp. */
+export function qualityColor(q: number): string {
+  const t = clamp01(q);
+  for (let i = 1; i < QUALITY_RAMP.length; i++) {
+    const [p1, c1] = QUALITY_RAMP[i - 1];
+    const [p2, c2] = QUALITY_RAMP[i];
+    if (t <= p2) {
+      const f = (t - p1) / (p2 - p1);
+      const ch = (a: number, b: number) => Math.round(a + (b - a) * f);
+      return `rgb(${ch(c1[0], c2[0])}, ${ch(c1[1], c2[1])}, ${ch(c1[2], c2[2])})`;
+    }
+  }
+  const [, last] = QUALITY_RAMP[QUALITY_RAMP.length - 1];
+  return `rgb(${last[0]}, ${last[1]}, ${last[2]})`;
+}

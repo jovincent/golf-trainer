@@ -3,38 +3,43 @@ import { Target, Crosshair, Trash2 } from "lucide-react";
 import { useStore } from "../store";
 import { ClubSelector } from "../components/ClubSelector";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
-import { evaluateShot, ratingColor } from "../lib/shotEval";
+import { evaluateShot, ratingColor, metricQuality, qualityColor } from "../lib/shotEval";
 import { CLUB_LABELS, type Shot } from "../types";
 
-// Big at-a-glance numbers for the shot just hit.
-function HeroStat({ label, value, sub, cls }: { label: string; value: string; sub?: string; cls?: string }) {
+// Big at-a-glance numbers for the shot just hit. `color` (when set) is an inline
+// CSS colour from the red→blue quality ramp; otherwise the value is neutral.
+function HeroStat({ label, value, sub, cls, color }: {
+  label: string; value: string; sub?: string; cls?: string; color?: string;
+}) {
   return (
     <div className="bg-panel rounded-xl px-3 py-3 text-center">
       <div className="text-[10px] uppercase tracking-wide text-ink/45">{label}</div>
-      <div className={"metric text-xl sm:text-2xl font-bold leading-tight " + (cls ?? "text-ink")}>{value}</div>
+      <div className={"metric text-xl sm:text-2xl font-bold leading-tight " + (color ? "" : cls ?? "text-ink")}
+        style={color ? { color } : undefined}>{value}</div>
       {sub && <div className="text-[11px] text-ink/40 mt-0.5">{sub}</div>}
     </div>
   );
 }
 
 function HeroStats({ shot }: { shot: Shot }) {
-  const c = evaluateShot(shot).ratings;
   const off = shot.offlineM;
   const offDir = Math.abs(off) < 1 ? "m · straight" : `m · ${off < 0 ? "left" : "right"}`;
+  // Quality colour per metric (red = bad … blue = good). smash/launch/backspin are
+  // scored against the club's ideal window; offline against the target line.
+  const q = (m: "smash" | "launch" | "spin" | "offline") => qualityColor(metricQuality(shot, m));
   return (
     <section className="card p-4 h-full">
       <h3 className="text-[10px] uppercase tracking-widest text-ink/40 mb-3">Last shot · {shot.club}</h3>
       <div className="grid grid-cols-3 gap-2">
         <HeroStat label="Club speed" value={shot.clubSpeed.toFixed(0)} sub="km/h" />
-        <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" cls="text-teal" />
-        <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} cls={ratingColor(c.smash)} />
-        <HeroStat label="Carry" value={shot.carry.toFixed(0)} sub="m" cls="text-royal" />
+        <HeroStat label="Ball speed" value={shot.ballSpeed.toFixed(0)} sub="km/h" />
+        <HeroStat label="Smash" value={shot.smashFactor.toFixed(2)} color={q("smash")} />
+        <HeroStat label="Carry" value={shot.carry.toFixed(0)} sub="m" />
         <HeroStat label="Total" value={shot.total.toFixed(0)} sub="m" />
         <HeroStat label="Apex" value={shot.apex.toFixed(0)} sub="m" />
-        <HeroStat label="Launch" value={shot.launchAngle.toFixed(1)} sub="°" cls={ratingColor(c.launch)} />
-        <HeroStat label="Backspin" value={shot.backSpin.toFixed(0)} sub="rpm" cls={ratingColor(c.spin)} />
-        <HeroStat label="Offline" value={Math.abs(off).toFixed(1)} sub={offDir}
-          cls={Math.abs(off) > 12 ? "text-terracotta" : "text-ink"} />
+        <HeroStat label="Launch" value={shot.launchAngle.toFixed(1)} sub="°" color={q("launch")} />
+        <HeroStat label="Backspin" value={shot.backSpin.toFixed(0)} sub="rpm" color={q("spin")} />
+        <HeroStat label="Offline" value={Math.abs(off).toFixed(1)} sub={offDir} color={q("offline")} />
       </div>
     </section>
   );
