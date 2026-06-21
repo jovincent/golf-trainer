@@ -39,17 +39,40 @@ const shot = async (file, fullPage = false) => {
   await page.screenshot({ path: `${OUT}/${file}`, fullPage });
   console.log("saved", file);
 };
+// Screenshot a single card: the <section> that contains the given heading.
+const shotCard = async (heading, file) => {
+  const card = page.locator("section").filter({ has: page.getByRole("heading", { name: heading }) });
+  await card.scrollIntoViewIfNeeded();
+  await sleep(400);
+  await card.screenshot({ path: `${OUT}/${file}` });
+  console.log("saved", file);
+};
 
-// --- Stats (rich, real data) ---
+// --- Stats (rich, real data): full tab + the bullseye and dispersion cards ---
 await clickTab("^Stats");
 await shot("stats.png");
+await shotCard("Bullseye by club", "bullseye.png");
+await shotCard("Dispersion pattern", "dispersion.png");
 
-// --- History ---
+// --- History: collapsed list, then one session expanded ---
 await clickTab("^History");
 await shot("history.png");
+// Expand a session with a handful of shots so the shot table reads cleanly.
+const sessionToggle = page.locator(".card > button").filter({ hasText: /ball/ });
+await sessionToggle.nth(1).click();
+await sleep(700);
+await shot("history-expanded.png");
+await sessionToggle.nth(1).click(); // collapse again
 
-// --- Compare (spider charts) ---
+// --- Compare (spider charts) — Jonathan vs Boubou only ---
 await clickTab("^Compare");
+// Auto-selects the first 4 profiles (Jonathan, Jo, Boubou, Annemarie); drop the
+// other two so only Jonathan and Boubou remain.
+for (const name of ["Jo", "Annemarie"]) {
+  await page.getByRole("button", { name, exact: true }).click();
+  await sleep(300);
+}
+await sleep(600);
 await shot("compare.png");
 
 // --- Course (carousel) ---
