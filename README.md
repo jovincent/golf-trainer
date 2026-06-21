@@ -14,6 +14,21 @@ offers guided drills — all stored locally, no cloud, no account.
 
 ---
 
+## Screenshots
+
+| Session — live shot + 3D ball flight | Course — play simulated rounds |
+| :---: | :---: |
+| ![Session tab](docs/screenshots/session.png) | ![Course tab](docs/screenshots/course.png) |
+| **Stats — dispersion & club gapping** | **Compare — radar charts across players** |
+| ![Stats tab](docs/screenshots/stats.png) | ![Compare tab](docs/screenshots/compare.png) |
+
+<p align="center">
+  <img src="docs/screenshots/history.png" alt="History tab — sessions, club filter, sorting" width="70%">
+  <br><em>History — every session, filterable by club and sortable by carry / speed / smash.</em>
+</p>
+
+---
+
 ## Prerequisites
 
 - **Node.js ≥ 22.6** and **npm** — the API uses the built-in `node:sqlite` module, so a
