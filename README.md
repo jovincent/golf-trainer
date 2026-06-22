@@ -46,8 +46,8 @@ offers guided drills — all stored locally, no cloud, no account.
 ## Run it on your computer
 
 ```bash
-git clone <repo-url> Golf-Trainer
-cd Golf-Trainer
+git clone https://github.com/jovincent/golf-trainer.git
+cd golf-trainer
 npm install        # installs front-end + server deps
 npm run dev        # starts the API (port 4141) + the Vite front end (port 4040)
 ```
