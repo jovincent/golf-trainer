@@ -87,17 +87,23 @@ await shot("course.png");
 await clickTab("^Session");
 await page.getByRole("button", { name: "Connect" }).click();
 await sleep(1000);
-const hit = async (club, n) => {
+// Club is now picked via the dropdown: open it, click the club's option.
+const pick = async (label) => {
+  await page.locator('button[aria-haspopup="listbox"]').click();
+  await sleep(250);
+  await page.getByRole("option", { name: new RegExp(label) }).click();
+  await sleep(250);
+};
+const hit = async (label, n) => {
+  await pick(label);
   for (let i = 0; i < n; i++) {
-    await page.getByRole("button", { name: new RegExp(`^${club}$`) }).click();
-    await sleep(120);
     await page.getByRole("button", { name: /^Hit( a ball)?$/ }).click();
     await sleep(450);
   }
 };
-await hit("7i", 3);
-await hit("PW", 2);
-await hit("Dr", 3); // end on a driver so the hero "Last shot" is a Dr
+await hit("7 Iron", 3);
+await hit("Pitching wedge", 2);
+await hit("Driver", 3); // end on a driver so the hero "Last shot" is a Dr
 await sleep(600);
 await shot("session.png");
 
