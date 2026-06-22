@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { Target, Crosshair, Trash2 } from "lucide-react";
+import { Target, Crosshair, Trash2, Check } from "lucide-react";
 import { useStore } from "../store";
-import { ClubSelector } from "../components/ClubSelector";
+import { ClubDropdown } from "../components/ClubDropdown";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
 import { evaluateShot, ratingColor, metricQuality, qualityColor } from "../lib/shotEval";
 import { useUnits } from "../lib/useUnits";
-import { CLUB_LABELS, type Shot } from "../types";
+import { type Shot } from "../types";
 
 // Big at-a-glance numbers for the shot just hit. `color` (when set) is an inline
 // CSS colour from the red→blue quality ramp; otherwise the value is neutral.
@@ -48,7 +48,7 @@ function HeroStats({ shot }: { shot: Shot }) {
 }
 
 export function LiveSession() {
-  const { adapterId, conn, current, selectedClub, clubArmed, setLockClub, simHit, endSession, deleteShot } = useStore();
+  const { adapterId, conn, current, clubArmed, setLockClub, simHit, endSession, deleteShot } = useStore();
   const U = useUnits();
   const shots = current?.shots ?? [];
   const last = shots[0];
@@ -63,22 +63,23 @@ export function LiveSession() {
 
   return (
     <div className="grid gap-4">
-      <section className="card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display text-lg text-ink flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-fairway" /> Club in hand
-          </h2>
-          <span className="text-sm text-ink/50">{CLUB_LABELS[selectedClub]}</span>
+      <section className="card p-5 relative z-20">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <ClubDropdown />
+          </div>
+          {/* Ready / pick-a-club status */}
+          {connected && (
+            <span className={"inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5 shrink-0 " +
+              (clubArmed ? "bg-fairway/10 text-fairway" : "bg-gold/15 text-gold")}>
+              {clubArmed
+                ? <><Check className="w-3.5 h-3.5" /> Ready</>
+                : <><Crosshair className="w-3.5 h-3.5" /> Pick a club</>}
+            </span>
+          )}
         </div>
-        <ClubSelector />
 
-        {!clubArmed && connected && (
-          <p className="mt-3 text-sm font-semibold text-gold flex items-center gap-1.5">
-            <Crosshair className="w-4 h-4" /> Pick the club for the next shot to record it correctly.
-          </p>
-        )}
-
-        {adapterId === "simulator" && (
+        {adapterId === "simulator" ? (
           <button
             onClick={simHit}
             disabled={!connected || !clubArmed}
@@ -89,6 +90,10 @@ export function LiveSession() {
           >
             <Target className="w-4 h-4" /> Hit a ball
           </button>
+        ) : connected && (
+          <p className="mt-4 text-sm text-ink/50">
+            {clubArmed ? "Hit your ball — the R10 will record it." : "Pick the club before hitting."}
+          </p>
         )}
       </section>
 
