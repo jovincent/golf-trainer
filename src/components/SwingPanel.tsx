@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Video, VideoOff, AlertTriangle } from "lucide-react";
 import { useSwingCamera } from "../lib/useSwingCamera";
 import { analyzeSwing, type SwingReport } from "../lib/pose";
+import { useStore } from "../store";
+import { api, reportSummary } from "../lib/api";
 import type { Shot } from "../types";
 import { SwingVideo } from "./SwingVideo";
 import { HandednessToggle, SwingLiveMetrics, SwingReportGrid } from "./SwingReport";
@@ -15,6 +17,7 @@ const WINDOW_MS = 3500; // swing window grabbed before each detected shot
  * and analyses the swing — pairing tempo / head movement / posture with the shot.
  */
 export function SwingPanel({ last }: { last?: Shot }) {
+  const profileId = useStore((s) => s.profileId);
   const [rightHanded, setRightHanded] = useState(true);
   const cam = useSwingCamera(rightHanded);
   const [report, setReport] = useState<SwingReport | null>(null);
@@ -22,13 +25,20 @@ export function SwingPanel({ last }: { last?: Shot }) {
   const [forClub, setForClub] = useState<string | undefined>(undefined);
   const running = cam.status === "running";
 
-  // A new shot landed while the camera is running → analyse the swing before it.
+  // A new shot landed while the camera is running → analyse the swing before it,
+  // and save it to History (data-only — these in-session swings have no clip).
   useEffect(() => {
     if (!running || !last || last.id === forShot) return;
     setForShot(last.id);
     const r = analyzeSwing(cam.grab(last.ts ?? Date.now(), WINDOW_MS));
-    if (r) { setReport(r); setForClub(last.club); }
-  }, [last, running, forShot, cam]);
+    if (r) {
+      setReport(r); setForClub(last.club);
+      api.createSwing({
+        id: `swing_${last.id}`, ts: last.ts ?? Date.now(), profileId, club: last.club,
+        durationMs: Math.round(r.backswingMs + r.downswingMs), report: reportSummary(r),
+      }).catch(() => { /* offline / API down */ });
+    }
+  }, [last, running, forShot, cam, profileId]);
 
   return (
     <section className="card p-5">

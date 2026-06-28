@@ -20,6 +20,7 @@ export function useSwingCamera(rightHanded: boolean) {
   const lastVideoTs = useRef<number>(-1);
   const bufRef = useRef<Frame[]>([]);
   const recRef = useRef<{ on: boolean; frames: Frame[] }>({ on: false, frames: [] });
+  const snapRef = useRef<HTMLCanvasElement | null>(null); // offscreen, for key-frame snapshots
   const rhRef = useRef(rightHanded);
   rhRef.current = rightHanded;
 
@@ -81,7 +82,21 @@ export function useSwingCamera(rightHanded: boolean) {
             if (m) {
               setLive(m);
               const now = Date.now();
-              const frame: Frame = { t: now, m };
+              // While recording, snapshot the frame (video + skeleton) so the
+              // address / top / contact stills can be extracted afterwards.
+              let img: string | undefined;
+              if (recRef.current.on) {
+                let sc = snapRef.current;
+                if (!sc || sc.width !== 480) {
+                  sc = snapRef.current = document.createElement("canvas");
+                  sc.width = 480; sc.height = Math.round((480 * cv.height) / cv.width) || 270;
+                }
+                const sctx = sc.getContext("2d")!;
+                sctx.drawImage(vv, 0, 0, sc.width, sc.height);
+                sctx.drawImage(cv, 0, 0, sc.width, sc.height);
+                img = sc.toDataURL("image/jpeg", 0.72);
+              }
+              const frame: Frame = { t: now, m, img };
               const buf = bufRef.current;
               buf.push(frame);
               const cutoff = now - BUFFER_MS;
@@ -107,7 +122,12 @@ export function useSwingCamera(rightHanded: boolean) {
     return bufRef.current.filter((f) => f.t >= from && f.t <= endTime + 250);
   }, []);
 
-  const startRecording = useCallback(() => { recRef.current = { on: true, frames: [] }; setRecording(true); }, []);
+  const startRecording = useCallback(() => {
+    recRef.current = { on: true, frames: [] };
+    setRecording(true);
+  }, []);
+
+  /** Stop recording → the captured pose frames (recorded frames carry a snapshot). */
   const stopRecording = useCallback((): Frame[] => {
     recRef.current.on = false;
     setRecording(false);

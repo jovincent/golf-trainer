@@ -31,8 +31,10 @@ offers guided drills — all stored locally, no cloud, no account.
 
 <p align="center">
   <img src="docs/screenshots/swing.png" alt="Swing video analysis — live webcam pose estimation on a golf swing" width="70%">
-  <br><em>Swing — live body-pose tracking with a skeleton overlay (also in Session, synced to each shot).</em>
-  <br><sub>Demo swing: <a href="https://commons.wikimedia.org/wiki/File:Golf_swing_practice_-_Kanagawa_-_slow_motion_-_2023_June_13.webm">“Golf swing practice – Kanagawa”</a> by Nesnad, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, via Wikimedia Commons.</sub>
+  <br><em>Swing — live body-pose tracking with a skeleton overlay; each recorded swing is saved to History.</em>
+  <br><br>
+  <img src="docs/screenshots/swing-keyframes.jpg" alt="Address, top and contact key frames with pose overlay and pass/fail labels" width="85%">
+  <br><em>Saved per swing: the <strong>address / top / contact</strong> key frames with the pose overlay, each label tinted green (all checks pass) or red, with a pass count.</em>
 </p>
 
 ---
@@ -96,6 +98,7 @@ Golf-Trainer/
 │   │   ├── flight.ts         # Ball-flight models (Realistic / Theoretical)
 │   │   ├── pose.ts           # Webcam pose estimation + swing metrics (MediaPipe)
 │   │   ├── useSwingCamera.ts # Camera + pose loop hook (rolling buffer, shot-synced)
+│   │   ├── keyframes.ts      # Address/top/contact key-frame still compositor
 │   │   ├── sounds.ts         # Feedback sounds (success, error)
 │   │   └── stats.ts          # Statistics (mean, stdDev, percentile…)
 │   ├── pages/
@@ -115,8 +118,9 @@ Golf-Trainer/
     ├── index.js              # Express API (port 4141) + Open Graph share images
     ├── og.js                 # Dynamic OG card (PNG) generator
     ├── db.js                 # SQLite access (WAL mode)
-    └── data/
-        └── fairway.db        # Local SQLite database (git-ignored)
+    └── data/                 # Local data (git-ignored)
+        ├── fairway.db        # SQLite database
+        └── swings/           # Saved address/top/contact key-frame stills
 ```
 
 ---
@@ -275,10 +279,33 @@ lead side.
 **Record a swing.** Hit **Record** at address and **Stop** after the finish; the landmark
 time-series is analysed ([`analyzeSwing()`](src/lib/pose.ts)) into a report:
 - **Tempo** — backswing : downswing time ratio (tour pros sit near **3 : 1**). "Top" is the
-  frame where the lead hands are highest; "impact" where they return to address height.
+  frame where the lead hands are highest; "address" / "impact" are the lowest-hands frames
+  before and after the top.
 - **Head movement** — max drift of the nose from address, as a % of the frame (steadier = better).
 - **Posture stability** — the range of spine lean across the swing.
 - Backswing / downswing times and max shoulder tilt.
+
+**Position checks (per phase).** At each key frame the app evaluates the same biomechanical
+checks as the reference project, with their thresholds — pass = green, fault = red:
+- **Address** — lead arm straight (165–180°), hands over the ball.
+- **Top** — posture/pelvis angle held (150–180°), head steady (< 5% drift).
+- **Contact** — lead arm straight (160–180°), lead knee extended (165–180°), head behind the
+  ball, shoulder over the ankle.
+
+Angles use 3-point geometry on the MediaPipe landmarks (e.g. lead shoulder–elbow–wrist for the
+arm; lead hip–knee–ankle for the knee), computed in [`computeMetrics`](src/lib/pose.ts) and
+graded in `evaluateChecks`. Each key frame in the saved still is tinted green / red and shows
+its pass count.
+
+**Saved key frames.** A recorded swing is persisted — but **not the video**. The three key
+positions (**address, top, contact**) are snapshotted with the skeleton overlay and composited
+into one labelled still ([`buildKeyframeStill`](src/lib/keyframes.ts)), uploaded to the server's
+`server/data/swings/` folder; the analysis goes to SQLite (`swings` table) — see the
+[backend routes](server/index.js). The **History** tab unites them in a **Swing recordings**
+section: the address/top/contact still next to its tempo / head-movement / posture data
+([`SwingHistory`](src/components/SwingHistory.tsx)). In-session swings are saved data-only, so
+History holds both your key-frame pictures and your swing data in one place. This mirrors the
+three-key-frame output of [Strojove-uceni/23206](https://github.com/Strojove-uceni/23206-final-pose-estimation-for-swing-improvement).
 
 **In a session — synced to your shots.** The **Session** tab has a *Swing camera* panel that
 runs the same pose tracking alongside the launch monitor. When the R10 (or the simulator)

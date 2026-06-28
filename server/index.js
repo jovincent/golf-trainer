@@ -11,6 +11,7 @@ import {
   listCombines, createCombine, deleteCombine,
   createShare, getShare,
   listProfiles, createProfile, updateProfile, deleteProfile,
+  listSwings, getSwing, createSwing, saveSwingMedia, deleteSwing, swingMediaPath,
 } from "./db.js";
 import { renderOgPng, shareMeta } from "./og.js";
 
@@ -123,6 +124,39 @@ app.post("/api/combines", (req, res) => {
 
 app.delete("/api/combines/:id", (req, res) => {
   deleteCombine(req.params.id);
+  res.json({ ok: true });
+});
+
+// ---- Swings (recorded videos + pose analysis) -------------------------------
+
+app.get("/api/swings", (req, res) => res.json(listSwings(req.query.profileId ?? null)));
+
+// Metadata first (id, profileId, club, report…); the clip is uploaded separately.
+app.post("/api/swings", (req, res) => {
+  const s = req.body;
+  if (!s?.id || !s.ts) return res.status(400).json({ error: "id, ts required" });
+  createSwing(s);
+  res.status(201).json({ ok: true });
+});
+
+// Raw upload of the address/top/contact still (JPEG) → swings/ folder on disk.
+app.put("/api/swings/:id/media", express.raw({ type: ["image/jpeg", "image/png"], limit: "16mb" }), (req, res) => {
+  if (!getSwing(req.params.id)) return res.status(404).json({ error: "unknown swing" });
+  const ext = String(req.headers["content-type"] || "").includes("png") ? "png" : "jpg";
+  saveSwingMedia(req.params.id, ext, req.body);
+  res.status(201).json({ ok: true, ext });
+});
+
+app.get("/api/swings/:id/media", (req, res) => {
+  const s = getSwing(req.params.id);
+  if (!s?.mediaExt) return res.status(404).end();
+  const path = swingMediaPath(s.id, s.mediaExt);
+  if (!existsSync(path)) return res.status(404).end();
+  res.sendFile(path);
+});
+
+app.delete("/api/swings/:id", (req, res) => {
+  deleteSwing(req.params.id);
   res.json({ ok: true });
 });
 

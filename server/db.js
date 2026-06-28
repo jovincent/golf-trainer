@@ -1,11 +1,15 @@
 import { DatabaseSync } from "node:sqlite";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, "data");
 mkdirSync(DATA_DIR, { recursive: true });
+
+// Recorded swing clips live as files on disk (out of SQLite); metadata in the DB.
+export const SWINGS_DIR = join(DATA_DIR, "swings");
+mkdirSync(SWINGS_DIR, { recursive: true });
 
 export const db = new DatabaseSync(join(DATA_DIR, "fairway.db"));
 db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
@@ -65,7 +69,21 @@ db.exec(`
     data       TEXT NOT NULL,
     created_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS swings (
+    id          TEXT PRIMARY KEY,
+    profile_id  TEXT REFERENCES profiles(id),
+    ts          INTEGER NOT NULL,
+    club        TEXT,
+    duration_ms INTEGER,
+    report      TEXT,        -- JSON SwingReport summary (no frames)
+    media_ext   TEXT,        -- 'jpg' once the address/top/contact still is uploaded
+    created_at  INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_swings_profile ON swings(profile_id);
 `);
+// Migration: earlier builds stored a video clip in `video_ext`.
+try { db.exec("ALTER TABLE swings RENAME COLUMN video_ext TO media_ext"); } catch { /* already media_ext */ }
 
 // Migration: add profile_id to pre-existing tables (no-op if already present).
 try { db.exec("ALTER TABLE sessions ADD COLUMN profile_id TEXT REFERENCES profiles(id)"); } catch {}
@@ -217,6 +235,7 @@ export function deleteProfile(id) {
   db.prepare("DELETE FROM sessions WHERE profile_id = ?").run(id);
   db.prepare("DELETE FROM rounds WHERE profile_id = ?").run(id);
   db.prepare("DELETE FROM combines WHERE profile_id = ?").run(id);
+  for (const sw of db.prepare("SELECT id FROM swings WHERE profile_id = ?").all(id)) deleteSwing(sw.id);
   db.prepare("DELETE FROM profiles WHERE id = ?").run(id);
 }
 
@@ -262,4 +281,54 @@ export function getShare(token) {
   const r = db.prepare("SELECT * FROM shares WHERE token = ?").get(token);
   if (!r) return null;
   return { kind: r.kind, player: r.player, createdAt: r.created_at, data: JSON.parse(r.data) };
+}
+
+// ---- Swings (recorded videos + pose analysis) --------------------------------
+
+const swingRow = (r) => ({
+  id: r.id,
+  profileId: r.profile_id ?? undefined,
+  ts: r.ts,
+  club: r.club ?? undefined,
+  durationMs: r.duration_ms ?? undefined,
+  report: r.report ? JSON.parse(r.report) : null,
+  mediaExt: r.media_ext ?? undefined,
+  hasMedia: !!r.media_ext,
+});
+
+export function listSwings(profileId) {
+  const rows = profileId
+    ? db.prepare("SELECT * FROM swings WHERE profile_id = ? ORDER BY ts DESC").all(profileId)
+    : db.prepare("SELECT * FROM swings ORDER BY ts DESC").all();
+  return rows.map(swingRow);
+}
+
+export function getSwing(id) {
+  const r = db.prepare("SELECT * FROM swings WHERE id = ?").get(id);
+  return r ? swingRow(r) : null;
+}
+
+export function createSwing(s) {
+  db.prepare(
+    `INSERT OR REPLACE INTO swings (id, profile_id, ts, club, duration_ms, report, media_ext, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    s.id, s.profileId ?? null, s.ts ?? Date.now(), s.club ?? null,
+    s.durationMs ?? null, s.report ? JSON.stringify(s.report) : null,
+    s.mediaExt ?? null, Date.now(),
+  );
+}
+
+export const swingMediaPath = (id, ext) => join(SWINGS_DIR, `${id}.${ext}`);
+
+/** Write the uploaded key-frame still to disk and record its extension on the row. */
+export function saveSwingMedia(id, ext, buffer) {
+  writeFileSync(swingMediaPath(id, ext), buffer);
+  db.prepare("UPDATE swings SET media_ext = ? WHERE id = ?").run(ext, id);
+}
+
+export function deleteSwing(id) {
+  const r = db.prepare("SELECT media_ext FROM swings WHERE id = ?").get(id);
+  if (r?.media_ext) { try { rmSync(swingMediaPath(id, r.media_ext)); } catch { /* gone */ } }
+  db.prepare("DELETE FROM swings WHERE id = ?").run(id);
 }

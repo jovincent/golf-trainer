@@ -5,6 +5,7 @@ import { shotsToCsv, downloadText } from "../lib/export";
 import { mean } from "../lib/stats";
 import { CLUBS, CLUB_LABELS, type Club, type Session, type Shot } from "../types";
 import { ShareModal } from "../components/ShareModal";
+import { SwingHistory } from "../components/SwingHistory";
 import { buildSessionShare, type ShareEnvelope } from "../lib/share";
 import { usePlayerName } from "../lib/usePlayerName";
 import { useUnits } from "../lib/useUnits";
@@ -109,6 +110,8 @@ export function History() {
           </label>
         </section>
       )}
+
+      <SwingHistory />
 
       {sessions.length === 0 ? (
         <div className="card p-8 text-center text-ink/40">

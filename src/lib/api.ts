@@ -2,6 +2,30 @@ import type { Session, Shot } from "../types";
 import type { Round } from "./course";
 import type { CombineResult } from "./combine";
 import type { ShareEnvelope, ShareKind } from "./share";
+import type { SwingReport } from "./pose";
+
+/** A persisted swing: video clip on disk + its pose-analysis summary (no frames). */
+export type SwingReportSummary = Omit<SwingReport, "frames">;
+export interface SwingRecord {
+  id: string;
+  profileId?: string;
+  ts: number;
+  club?: string;
+  durationMs?: number;
+  report: SwingReportSummary | null;
+  mediaExt?: string;   // 'jpg' — the address/top/contact key-frame still
+  hasMedia: boolean;
+}
+
+/** Drop the (heavy) per-frame array before persisting a swing report. */
+export function reportSummary(r: SwingReport): SwingReportSummary {
+  return {
+    addressIndex: r.addressIndex, topIndex: r.topIndex, impactIndex: r.impactIndex,
+    backswingMs: r.backswingMs, downswingMs: r.downswingMs, tempoRatio: r.tempoRatio,
+    headMovement: r.headMovement, maxShoulderTilt: r.maxShoulderTilt, spineRange: r.spineRange,
+    checks: r.checks,
+  };
+}
 
 const BASE = "/api";
 
@@ -68,6 +92,29 @@ export const api = {
     req("/combines", { method: "POST", body: JSON.stringify(c) }),
 
   deleteCombine: (id: string) => req(`/combines/${id}`, { method: "DELETE" }),
+
+  // ---- Swings (recorded videos + pose analysis) ---------------------------------
+  listSwings: (profileId?: string | null): Promise<SwingRecord[]> =>
+    req(`/swings${profileId ? `?profileId=${encodeURIComponent(profileId)}` : ""}`),
+
+  createSwing: (s: {
+    id: string; ts: number; profileId?: string | null;
+    club?: string; durationMs?: number; report?: SwingReportSummary | null;
+  }) => req("/swings", { method: "POST", body: JSON.stringify(s) }),
+
+  uploadSwingMedia: async (id: string, blob: Blob) => {
+    const res = await fetch(`${BASE}/swings/${id}/media`, {
+      method: "PUT",
+      headers: { "content-type": blob.type || "image/jpeg" },
+      body: blob,
+    });
+    if (!res.ok) throw new Error(`PUT /swings/${id}/media → ${res.status}`);
+    return res.json();
+  },
+
+  deleteSwing: (id: string) => req(`/swings/${id}`, { method: "DELETE" }),
+
+  swingMediaUrl: (id: string) => `${BASE}/swings/${id}/media`,
 
   // ---- Shares (public snapshots) ------------------------------------------------
   createShare: (envelope: ShareEnvelope): Promise<{ token: string }> =>
