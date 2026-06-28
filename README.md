@@ -30,8 +30,9 @@ offers guided drills — all stored locally, no cloud, no account.
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/swing.png" alt="Swing video analysis — webcam pose estimation (placeholder)" width="70%">
-  <br><em>Swing — webcam pose estimation with a skeleton overlay, synced to each shot. <strong>Placeholder image</strong> — replace <code>docs/screenshots/swing.png</code> with a real webcam capture.</em>
+  <img src="docs/screenshots/swing.png" alt="Swing video analysis — live webcam pose estimation on a golf swing" width="70%">
+  <br><em>Swing — live body-pose tracking with a skeleton overlay (also in Session, synced to each shot).</em>
+  <br><sub>Demo swing: <a href="https://commons.wikimedia.org/wiki/File:Golf_swing_practice_-_Kanagawa_-_slow_motion_-_2023_June_13.webm">“Golf swing practice – Kanagawa”</a> by Nesnad, <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, via Wikimedia Commons.</sub>
 </p>
 
 ---

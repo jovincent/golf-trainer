@@ -74,8 +74,9 @@ export function useSwingCamera(rightHanded: boolean) {
           ctx.clearRect(0, 0, cv.width, cv.height);
           const landmarks = res.landmarks?.[0];
           if (landmarks) {
-            du.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { color: "#16294D", lineWidth: 3 });
-            du.drawLandmarks(landmarks, { color: "#2F8F5B", fillColor: "#2F8F5B", radius: 4 });
+            // High-contrast overlay so the skeleton reads on any background.
+            du.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { color: "rgba(255,255,255,0.92)", lineWidth: 4 });
+            du.drawLandmarks(landmarks, { color: "#16294D", fillColor: "#F4C534", radius: 5, lineWidth: 1 });
             const m = computeMetrics(landmarks, rhRef.current);
             if (m) {
               setLive(m);
