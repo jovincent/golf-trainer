@@ -463,3 +463,21 @@ node scripts/validateModel.mjs path/to/export.csv
 
 > Ports are fixed: front end **4040**, API **4141** (`vite.config.ts`, `server/index.js`).
 > `recomputeAll()` in the store re-derives every shot's distances when the flight model changes.
+
+---
+
+## Credits & acknowledgements
+
+- **Swing pose analysis.** The address / top / contact key-frame approach and the per-phase
+  angle checks (lead-arm, pelvis, knee, head, alignment) with their thresholds are based on
+  **“Pose Estimation for Swing Improvement” (project 23206)** — a *Strojové učení* (Machine
+  Learning) course project: <https://github.com/Strojove-uceni/23206-final-pose-estimation-for-swing-improvement>.
+  This app re-implements that project's `Evaluator` logic client-side in the browser.
+
+  > Strojové učení (23206), *Pose Estimation for Swing Improvement*, GitHub repository.
+  > https://github.com/Strojove-uceni/23206-final-pose-estimation-for-swing-improvement
+
+- **Pose model.** Body tracking uses Google **MediaPipe Pose Landmarker**
+  (`@mediapipe/tasks-vision`), 33-landmark full-body pose.
+- **Garmin R10.** The Bluetooth / protobuf parsing is ported from the open-source
+  **gsp-r10-adapter** reverse-engineering work.
