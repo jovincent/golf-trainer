@@ -3,6 +3,7 @@ import { Target, Crosshair, Trash2, Check } from "lucide-react";
 import { useStore } from "../store";
 import { ClubDropdown } from "../components/ClubDropdown";
 import { ShotTrajectory3D } from "../components/ShotTrajectory3D";
+import { SwingPanel } from "../components/SwingPanel";
 import { evaluateShot, ratingColor, metricQuality, qualityColor } from "../lib/shotEval";
 import { useUnits } from "../lib/useUnits";
 import { type Shot } from "../types";
@@ -112,6 +113,8 @@ export function LiveSession() {
             : "Connect a source to start a session."}
         </section>
       )}
+
+      <SwingPanel last={last} />
 
       {shots.length > 0 && (
         <section className="card overflow-hidden">

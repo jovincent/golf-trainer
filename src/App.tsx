@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, Calendar, Gauge, LayoutDashboard, Flag, Target, Users, UserCircle, ChevronDown, Plus, Trash2, Pencil, Star } from "lucide-react";
+import { Activity, Calendar, Gauge, LayoutDashboard, Flag, Target, Users, UserCircle, ChevronDown, Plus, Trash2, Pencil, Star, Video } from "lucide-react";
 import { ConnectionBar } from "./components/ConnectionBar";
 import { UnitSwitch } from "./components/UnitSwitch";
 import { LiveSession } from "./pages/LiveSession";
@@ -10,6 +10,7 @@ import { History } from "./pages/History";
 import { Compare } from "./pages/Compare";
 import { Junior } from "./pages/Junior";
 import { Combine } from "./pages/Combine";
+import { Swing } from "./pages/Swing";
 import { useStore } from "./store";
 import { api, type Profile } from "./lib/api";
 
@@ -18,6 +19,7 @@ const TABS = [
   { id: "course", label: "Course", icon: Flag, el: <Course /> },
   { id: "practice", label: "Practice", icon: Target, el: <Practice /> },
   { id: "combine", label: "Combine", icon: Gauge, el: <Combine /> },
+  { id: "swing", label: "Swing", icon: Video, el: <Swing /> },
   { id: "stats", label: "Stats", icon: LayoutDashboard, el: <Stats /> },
   { id: "history", label: "History", icon: Calendar, el: <History /> },
   { id: "compare", label: "Compare",  icon: Users, el: <Compare /> },

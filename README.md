@@ -29,6 +29,11 @@ offers guided drills — all stored locally, no cloud, no account.
   <br><em>History — every session, filterable by club and sortable by carry / speed / smash; each expands into its full per-shot table.</em>
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/swing.png" alt="Swing video analysis — webcam pose estimation (placeholder)" width="70%">
+  <br><em>Swing — webcam pose estimation with a skeleton overlay, synced to each shot. <strong>Placeholder image</strong> — replace <code>docs/screenshots/swing.png</code> with a real webcam capture.</em>
+</p>
+
 ---
 
 ## Prerequisites
@@ -88,10 +93,13 @@ Golf-Trainer/
 │   │   ├── api.ts            # HTTP client → Express API (profiles + sessions)
 │   │   ├── export.ts         # CSV export
 │   │   ├── flight.ts         # Ball-flight models (Realistic / Theoretical)
+│   │   ├── pose.ts           # Webcam pose estimation + swing metrics (MediaPipe)
+│   │   ├── useSwingCamera.ts # Camera + pose loop hook (rolling buffer, shot-synced)
 │   │   ├── sounds.ts         # Feedback sounds (success, error)
 │   │   └── stats.ts          # Statistics (mean, stdDev, percentile…)
 │   ├── pages/
 │   │   ├── LiveSession.tsx   # Live session
+│   │   ├── Swing.tsx         # Webcam swing analysis (pose estimation)
 │   │   ├── Stats.tsx         # Stats & dispersion pattern
 │   │   ├── Practice.tsx      # Guided drills
 │   │   ├── Combine.tsx       # Standardized skill test (Combine)
@@ -121,6 +129,7 @@ Golf-Trainer/
 | Backend | Express 4 (Node.js ESM) |
 | Database | SQLite via native `node:sqlite` (WAL mode) |
 | Bluetooth | Web Bluetooth API (Chrome/Edge only) |
+| Pose estimation | MediaPipe Tasks Vision (`@mediapipe/tasks-vision`, in-browser WASM/WebGL) |
 
 ---
 
@@ -222,13 +231,17 @@ GET    /s/:token                     public share page (crawler-friendly OG meta
 ## Features by tab
 
 - **Session** — shot-by-shot metrics: carry, ball/club speed, smash factor, spin, apex,
-  offline. Cumulative shot table. Auto-saved ball by ball.
+  offline (colour-coded red→blue by quality), a 3D ball-flight view, and an optional **swing
+  camera** that auto-analyses the swing before each shot. Cumulative table, auto-saved ball by ball.
 - **Course** — play simulated rounds on iconic and regional courses, with scoring, a hole
   map, and a saved scorecard you can share.
 - **Practice** — targeted drills (accuracy corridor + distance control) scored live,
   plus a closest-to-pin challenge.
 - **Combine** — a standardized 30-ball skill test (9 fixed distances + driver), each ball
   scored 0–100, comparable between players and across time.
+- **Swing** — webcam swing analysis: live body-pose tracking with a skeleton overlay, live
+  posture angles, and a recorded-swing report (tempo, head movement, posture stability). All
+  on-device — see [Swing video analysis](#swing-video-analysis-webcam--pose-estimation) below.
 - **Stats** — dispersion pattern, per-club gapping, consistency (carry & lateral σ),
   bullseye, with CSV and share-card export.
 - **History** — every session for the active profile. Filter by club and sort by date,
@@ -239,6 +252,46 @@ GET    /s/:token                     public share page (crawler-friendly OG meta
 Each round / session / Combine / stats view can be **shared** as a branded card via a
 public link with a rich Open Graph preview (renders nicely in WhatsApp / iMessage), or
 downloaded.
+
+---
+
+## Swing video analysis (webcam + pose estimation)
+
+The **Swing** tab analyses your golf swing from a plain webcam — no launch monitor, no
+markers, no upload. It runs **[MediaPipe Pose Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/pose_landmarker)**
+(`@mediapipe/tasks-vision`) entirely in the browser via WASM + WebGL, tracking **33 body
+landmarks** per frame. The video and every frame stay on your device; only the model file +
+WASM runtime are fetched from a CDN on first use (so the first run needs a network
+connection). Implementation: [`src/lib/pose.ts`](src/lib/pose.ts),
+[`src/lib/useSwingCamera.ts`](src/lib/useSwingCamera.ts) + [`src/pages/Swing.tsx`](src/pages/Swing.tsx).
+
+**Live.** `getUserMedia` opens the camera; each animation frame is passed to
+`PoseLandmarker.detectForVideo()`, the skeleton is drawn over the video on a `<canvas>`, and
+the landmarks are turned into posture angles — **spine lean** (from vertical), **shoulder
+tilt**, **hip tilt** and **lead-knee flex** — shown live. A Right/Left-handed toggle picks the
+lead side.
+
+**Record a swing.** Hit **Record** at address and **Stop** after the finish; the landmark
+time-series is analysed ([`analyzeSwing()`](src/lib/pose.ts)) into a report:
+- **Tempo** — backswing : downswing time ratio (tour pros sit near **3 : 1**). "Top" is the
+  frame where the lead hands are highest; "impact" where they return to address height.
+- **Head movement** — max drift of the nose from address, as a % of the frame (steadier = better).
+- **Posture stability** — the range of spine lean across the swing.
+- Backswing / downswing times and max shoulder tilt.
+
+**In a session — synced to your shots.** The **Session** tab has a *Swing camera* panel that
+runs the same pose tracking alongside the launch monitor. When the R10 (or the simulator)
+registers a ball, that **shot's timestamp** is used to grab the ~3.5 s of pose frames *before
+impact* from a rolling buffer ([`useSwingCamera`](src/lib/useSwingCamera.ts) keeps the recent
+history) and analyse them automatically — so every shot is paired with its swing's tempo, head
+movement and posture, no manual record/stop needed.
+
+> It's a **single-camera 2D** estimate — great for tracking your *own* consistency over time,
+> not a substitute for a coach or a multi-camera rig. Stand face-on (or down-the-line), full
+> body in frame, ~3 m back, in good light. Needs a desktop Chromium browser or Chrome on
+> Android. This is a fresh, deliberately simple take on the idea behind projects like
+> [Strojove-uceni/23206](https://github.com/Strojove-uceni/23206-final-pose-estimation-for-swing-improvement) —
+> done client-side in the browser instead of an offline Python pipeline.
 
 ---
 
